@@ -6,14 +6,14 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest",
-    "prisma": "5.22.0",
-    "jsonwebtoken": "^9.0.2",
-    "openai": "^4.68.4",
-    "redis": "^4.7.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
-    "gpt-tokens": "^1.3.12"
+    "elysia": "latest",
+    "gpt-tokens": "^1.3.12",
+    "jsonwebtoken": "^9.0.2",
+    "openai": "^4.68.4",
+    "prisma": "5.22.0",
+    "redis": "^4.7.0"
   },
   "devDependencies": {
     "bun-types": "latest"
