@@ -12,3 +12,48 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Tenant {
+  id                        String   @unique @db.VarChar(255)
+  name                      String?  @db.VarChar(255)
+  maxContext                Int      @default(0)
+  maxConsumptionToken       Int      @default(0)
+  totalPromptTokenUsage     Int      @default(0)
+  totalCompletionTokenUsage Int      @default(0)
+  status                    Boolean  @default(false)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("tenants")
+}
+
+model TenantKey {
+  tenantName String   @unique @db.VarChar(255)
+  chatGptKey String?  @db.VarChar(255)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("tenant_keys")
+}
+
+model DateInDb {
+  id        Int      @id @default(autoincrement())
+  year      Int      @default(0)
+  month     Int      @default(0)
+  day       Int      @default(0)
+  hours     Int      @default(0)
+  minutes   Int      @default(0)
+  second    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("date_in_db")
+}
+
+model IpAllowed {
+  ip        String   @unique @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("ip_allowed")
+}

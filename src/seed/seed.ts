@@ -1,4 +1,5 @@
 import { clientRedis } from ".."
+import prisma from "../helpers/prisma_client"
 import { CHAT_GPT_API_KEY } from "../utils/constants"
 
 const tenantData = [
@@ -6,10 +7,10 @@ const tenantData = [
         id: "100",
         name: "100",
         maxContext: 2048,
-        maxConsumptionToken:1000000,
+        maxConsumptionToken: 1000000,
         totalPromptTokenUsage: 0,
         totalCompletionTokenUsage: 0,
-        status:false
+        status: false
     }
 ]
 
@@ -21,7 +22,7 @@ const tenantKeyData = [
     }
 ]
 
-const ipAllowed = [
+const ipAllowedData = [
     {
         ip: "127.0.0.1",
     },
@@ -32,16 +33,19 @@ const ipAllowed = [
 
 let dateNow = new Date()
 
-const dateInDb =  {
-    second: dateNow.getSeconds(),
-    minutes: dateNow.getMinutes(),
-    hours: dateNow.getHours(),
-    day: dateNow.getDay(),
-    month: dateNow.getMonth() + 1,
-    year: dateNow.getFullYear()
-}
+const dateInDbData =
+    [
+        {
+            second: dateNow.getSeconds(),
+            minutes: dateNow.getMinutes(),
+            hours: dateNow.getHours(),
+            day: dateNow.getDay(),
+            month: dateNow.getMonth() + 1,
+            year: dateNow.getFullYear()
+        }
+    ]
 
-export async function Seeding() {
+export async function SeedingRedis() {
     try {
         const getTenants = await clientRedis.get("tenants") ?? null
         const getTenantKeys = await clientRedis.get("tenant_keys") ?? null
@@ -57,19 +61,57 @@ export async function Seeding() {
         }
 
         if (getIpAllowed == null) {
-            await clientRedis.set("ip_allowed", JSON.stringify(ipAllowed))
+            await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedData))
         }
 
         if (getDateInDb == null) {
-            await clientRedis.set("date_in_db", JSON.stringify(dateInDb))
+            await clientRedis.set("date_in_db", JSON.stringify(dateInDbData))
         }
 
     } catch (error) {
         console.log('Failed seeded to redis ', error)
 
     }
+}
 
+export async function SeedingDb() {
+    try {
+        const tenants = await prisma.tenant.findMany();
 
+        if (tenants.length == 0) {
+            await prisma.tenant.createMany({
+                data: tenantData
+            });
+        }
+
+        const tenantKeys = await prisma.tenantKey.findMany();
+
+        if (tenantKeys.length == 0) {
+            await prisma.tenantKey.createMany({
+                data: tenantKeyData
+            });
+        }
+
+        const ipAllowed = await prisma.ipAllowed.findMany();
+
+        if (ipAllowed.length == 0) {
+            await prisma.ipAllowed.createMany({
+                data: ipAllowed
+            });
+        }
+
+        const dateInDb = await prisma.dateInDb.findMany();
+
+        if (dateInDb.length == 0) {
+            await prisma.dateInDb.createMany({
+                data: dateInDbData
+            });
+        }
+
+    } catch (error) {
+        console.log('Failed seeded to redis ', error)
+
+    }
 }
 
 // Seeding()

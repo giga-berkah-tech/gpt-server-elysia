@@ -4,7 +4,7 @@ import { AUTH_PREFIX, DATE_IN_DB_PREFIX, TENANT_PREFIX } from "./utils/key_types
 import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
-import { Seeding } from "./seed/seed";
+import { SeedingRedis } from "./seed/seed";
 import { ElysiaWS } from "elysia/dist/ws";
 import { TypeCheck } from "elysia/dist/type-system";
 import { ServerWebSocket } from "bun";
@@ -19,8 +19,8 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-// app.get('/', () => 'Hello from chatgpt service! v0.0.0')
-app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
+app.get('/', () => 'Hello from chatgpt service! v0.0.1')
+// app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
 const prefix = "/api"
