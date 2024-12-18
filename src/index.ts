@@ -48,12 +48,12 @@ app.ws('/ws', {
         return;
       }
 
-        // if (! await checkTenantVerifyUser(ws, message)) {
-        //   console.log("WS error =>", message)
-        //   ws.send(JSON.stringify({ status: 401, message: "user not valid" }))
-        //   ws.close();
-        //   return;
-        // };
+        if (! await checkTenantVerifyUser(ws, message)) {
+          console.log("WS error =>", message)
+          ws.send(JSON.stringify({ status: 401, message: "user not valid" }))
+          ws.close();
+          return;
+        };
         chatsOpenAi(ws,message)
     } catch (error) {
       ws.send(JSON.stringify({ status: 500, message: "Connection Error" }))
