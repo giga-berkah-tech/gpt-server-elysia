@@ -1,4 +1,5 @@
 import {AuthRoutes} from './AuthRoute'
 import {TenantRoutes} from './TenantRoute'
+import {DateInDbRoutes} from './DateInDbRoute'
 
-export{AuthRoutes,TenantRoutes}
+export{AuthRoutes,TenantRoutes,DateInDbRoutes}
