@@ -2,7 +2,7 @@ import Elysia, { Context, t } from "elysia";
 import { createTenant, deleteAllTenant, deleteTenantWithTenantKey, editTenant, getTenantData, getTenantDetail, getTenants } from "../controllers/TenantController";
 import { checkIp } from "../controllers/AuthController";
 import { failedResponse } from "../helpers/response_json";
-import { checkValidToken } from "../services/AuthServices";
+import { checkValidToken } from "../services/AuthService";
 
 // const prefix = "/auth"
 
