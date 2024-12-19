@@ -98,7 +98,7 @@ export async function SeedingDb() {
 
         if (ipAllowed.length == 0) {
             await prisma.ipAllowed.createMany({
-                data: ipAllowed
+                data: ipAllowedData
             });
         }
 

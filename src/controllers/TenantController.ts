@@ -67,7 +67,7 @@ export const createTenant = async (body:any) => {
                ...val
             })
         })
-        if (JSON.parse(getTenants).find((val: any) => val.id == body.name) != null) {
+        if (JSON.parse(getTenants).find((val: any) => val.name == body.name) != null) {
             return failedResponse( 'Tenants already exists', 409)
         }
 
@@ -309,9 +309,9 @@ export const editTenant = async (body:any,tenantId:string) => {
 export const deleteAllTenant = async () => {
 
     const getTenants = await clientRedis.get(REDIS_TENANT) ?? null
-    const getTenantKeys = await clientRedis.get(REDIS_TENANT_KEYS) ?? null
+    const getTenantKeys = tenantKeyData
 
-    if (getTenants != null && getTenantKeys != null) {
+    if (getTenants != null && getTenantKeys.length > 0) {
 
         //============= Redis ===================
         await clientRedis.set(

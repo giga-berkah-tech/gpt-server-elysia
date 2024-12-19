@@ -4,15 +4,9 @@ import { fetchTenantKeys, tenantKeyData } from "../services/LoadDataService"
 import { TenantKeys } from "../types/tenant"
 
 export const getTenantKeys = async () => {
-    let tenantKeyTemp: TenantKeys[] = []
-    const getTenantKey = tenantKeyData
-    if (getTenantKey.length > 0) {
-        getTenantKey.map((val: any) => {
-            tenantKeyTemp.push({
-                ...val
-            })
-        })
-        return successDataResponse(tenantKeyTemp)
+    // let tenantKeyTemp: TenantKeys[] = []
+    if (tenantKeyData.length > 0) {
+        return successDataResponse(tenantKeyData)
     }else{
         return failedResponse('Tenants_keys not found', 404)
     }

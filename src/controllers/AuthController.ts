@@ -1,6 +1,7 @@
 import { Context } from "elysia"
 import { failedResponse, successDataResponse, successResponse } from "../helpers/response_json"
 import { clientRedis } from ".."
+import prisma from "../helpers/prisma_client"
 
 export const getMyIp = async (ip: any) => {
     const getIp = ip.replaceAll('::ffff:', '')
@@ -47,6 +48,12 @@ export const addIpAllowed = async (body:{ip:string}) => {
 
             await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedTemp))
 
+            await prisma.ipAllowed.create({
+                data:{
+                    ip: body.ip
+                }
+            })
+
             return successResponse('Ip added', 200)
         } else {
             return failedResponse('Ip already exist', 400)
@@ -73,6 +80,12 @@ export const removeIpAllowed = async (body:{ip:string}) => {
             ipAllowedTemp = ipAllowedTemp.filter((val: any) => val.ip != body.ip)
 
             await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedTemp))
+
+            await prisma.ipAllowed.delete({
+                where: {
+                    ip: body.ip
+                }
+            })
             return successResponse('Ip removed', 200)
         } else {
             return failedResponse('Ip not found', 404)

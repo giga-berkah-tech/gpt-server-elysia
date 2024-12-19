@@ -9,9 +9,11 @@ export const fetchTenantKeys = async () => {
         const tenantKeys = await prisma.tenantKey.findMany();
 
         tenantKeys.map((val: any) => {
-            tenantKeyData.push({
-                ...val
-            })
+            if (!tenantKeyData.find((item) => item.tenantName === val.tenantName)) {
+                tenantKeyData.push({
+                    ...val
+                })
+            }
         })
     } catch (error) {
         console.log("❌ Failed fetch tenant keys with error: ", error)
