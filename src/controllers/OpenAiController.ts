@@ -6,6 +6,8 @@ import { API_URL, CHAT_GPT_MODEL } from "../utils/constants"
 import { REDIS_DATE_IN_DB, REDIS_TENANT, REDIS_TENANT_KEYS } from "../utils/key_types"
 import { GPTTokens } from "gpt-tokens"
 import OpenAI from "openai"
+import { tenantKeyData } from "../services/LoadDataService"
+import prisma from "../helpers/prisma_client"
 
 const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
     let dateInDb: DateInDb
@@ -34,14 +36,16 @@ const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
 
             await clientRedis.set(
                 REDIS_DATE_IN_DB,
-                JSON.stringify({
-                    "second": dateNow.getSeconds(),
-                    "minutes": dateNow.getMinutes(),
-                    "hours": dateNow.getHours(),
-                    "day": dateNow.getDay(),
-                    "month": dateNow.getMonth() + 1,
-                    "year": dateNow.getFullYear()
-                }),
+                JSON.stringify([
+                    {
+                        "second": dateNow.getSeconds(),
+                        "minutes": dateNow.getMinutes(),
+                        "hours": dateNow.getHours(),
+                        "day": dateNow.getDay(),
+                        "month": dateNow.getMonth() + 1,
+                        "year": dateNow.getFullYear()
+                    }
+                ]),
             );
 
         }
@@ -150,11 +154,11 @@ export const chatsOpenAi = async (ws: any, message: any) => {
         let totalCompletion = 0
 
         const getTenants = await clientRedis.get(REDIS_TENANT) ?? "-"
-        const getTenantKey = await clientRedis.get(REDIS_TENANT_KEYS) ?? "-"
+        // const getTenantKey = tenantKeyData
         const getToken: any = await clientRedis.get(`USER_TOKEN_${message.token}`) ?? "-"
 
         const tenantData = JSON.parse(getTenants).find((val: any) => val.id == message.tenant)
-        const tenantKeyData = JSON.parse(getTenantKey).find((val: any) => val.tenantName == message.tenant)
+        const tenantKey = tenantKeyData.find((val: any) => val.tenantName == message.tenant)
 
         if (getToken != "-") {
             const tokenData = JSON.parse(getToken)
@@ -210,7 +214,7 @@ export const chatsOpenAi = async (ws: any, message: any) => {
         ];
 
         const clientOpenAi = new OpenAI({
-            apiKey: tenantKeyData.chatGptKey
+            apiKey: tenantKey?.chatGptKey
         });
 
         const openAi = await clientOpenAi.chat.completions.create({
@@ -309,6 +313,17 @@ export const chatsOpenAi = async (ws: any, message: any) => {
             REDIS_TENANT,
             JSON.stringify([...tenantTemp]),
         )
+
+        //============= Postgree ===================
+        await prisma.tenant.update({
+            where: {
+                id: message.tenant
+            },
+            data: {
+                totalPromptTokenUsage: tenantData.totalPromptTokenUsage + totalPrompt,
+                totalCompletionTokenUsage: tenantData.totalCompletionTokenUsage + totalCompletion
+            }
+        })
         
     } catch (error: any) {
         ws.send(JSON.stringify({ status: error.status, message: error }));
