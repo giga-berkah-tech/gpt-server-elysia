@@ -3,7 +3,7 @@ import { clientRedis } from ".."
 import { DateInDb } from "../types/date_in_db"
 import { Tenant, UserTenant } from "../types/tenant"
 import { API_URL, CHAT_GPT_MODEL } from "../utils/constants"
-import { REDIS_DATE_IN_DB, REDIS_TENANT, REDIS_TENANT_KEYS } from "../utils/key_types"
+import { REDIS_DATE_IN_DB, REDIS_TENANT } from "../utils/key_types"
 import { GPTTokens } from "gpt-tokens"
 import OpenAI from "openai"
 import { tenantKeyData } from "../services/LoadDataService"
@@ -154,7 +154,6 @@ export const chatsOpenAi = async (ws: any, message: any) => {
         let totalCompletion = 0
 
         const getTenants = await clientRedis.get(REDIS_TENANT) ?? "-"
-        // const getTenantKey = tenantKeyData
         const getToken: any = await clientRedis.get(`USER_TOKEN_${message.token}`) ?? "-"
 
         const tenantData = JSON.parse(getTenants).find((val: any) => val.id == message.tenant)
