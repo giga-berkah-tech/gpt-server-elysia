@@ -26,7 +26,16 @@ const Routes = new Elysia()
         }
         return getTenantDetail(context.params.id)
     })
-    .post(`/`, ({ body }) => createTenant(body), {
+    .post(`/`, async (context: Context) => {
+        console.log(context.headers.authorization)
+        if (!checkValidToken(context)) {
+            return failedResponse("Token not valid", 401)
+        }
+        if (!await checkIp(context)) {
+            return failedResponse("You are not allowed", 403)
+        }
+       return createTenant(context.body)
+    }, {
         body: t.Object({
             name: t.String(),
             max_context: t.Number(),
@@ -34,7 +43,16 @@ const Routes = new Elysia()
             status: t.Boolean(),
         }),
     })
-    .put(`/`, ({ body }) => editTenant(body), {
+    .put(`/:id`, async (context: Context) => {
+        console.log(context.headers.authorization)
+        if (!checkValidToken(context)) {
+            return failedResponse("Token not valid", 401)
+        }
+        if (!await checkIp(context)) {
+            return failedResponse("You are not allowed", 403)
+        }
+        return editTenant(context.body,context.params.id)
+    }, {
         body: t.Object({
             tenant_name: t.String(),
             max_consumption_token: t.Number(),
@@ -42,13 +60,32 @@ const Routes = new Elysia()
             status: t.Boolean(),
         }),
     })
-    .delete(`/`, ({ body }) => deleteTenantWithTenantKey(body), {
+    .delete(`/`, async (context: Context) => {
+        console.log(context.headers.authorization)
+        if (!checkValidToken(context)) {
+            return failedResponse("Token not valid", 401)
+        }
+        if (!await checkIp(context)) {
+            return failedResponse("You are not allowed", 403)
+        }
+        return deleteTenantWithTenantKey(context.body)
+    }, {
         body: t.Object({
             tenant_name: t.String(),
         }),
     })
-    .delete(`/all`, () => deleteAllTenant())
+    .delete(`/all`, async (context: Context) => {
+        console.log(context.headers.authorization)
+        if (!checkValidToken(context)) {
+            return failedResponse("Token not valid", 401)
+        }
+        if (!await checkIp(context)) {
+            return failedResponse("You are not allowed", 403)
+        }
+        return deleteAllTenant()
+    })
     .get(`/data/:id`, async (context: Context) => {
+        console.log(context.headers.authorization)
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
         }

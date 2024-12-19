@@ -45,6 +45,8 @@ const dateInDbData =
         }
     ]
 
+
+
 export async function SeedingRedis() {
     try {
         const getTenants = await clientRedis.get("tenants") ?? null
@@ -52,19 +54,19 @@ export async function SeedingRedis() {
         const getIpAllowed = await clientRedis.get("ip_allowed") ?? null
         const getDateInDb = await clientRedis.get("date_in_db") ?? null
 
-        if (getTenants == null) {
+        if (getTenants == null || JSON.parse(getTenants).length == 0) {
             await clientRedis.set("tenants", JSON.stringify(tenantData))
         }
 
-        if (getTenantKeys == null) {
+        if (getTenantKeys == null || JSON.parse(getTenantKeys).length == 0) {
             await clientRedis.set("tenant_keys", JSON.stringify(tenantKeyData))
         }
 
-        if (getIpAllowed == null) {
+        if (getIpAllowed == null || JSON.parse(getIpAllowed).length == 0) {
             await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedData))
         }
 
-        if (getDateInDb == null) {
+        if (getDateInDb == null || JSON.parse(getDateInDb).length == 0) {
             await clientRedis.set("date_in_db", JSON.stringify(dateInDbData))
         }
 

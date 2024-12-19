@@ -1,6 +1,6 @@
 import { Elysia, t, TSchema } from "elysia";
-import { AuthRoutes, DateInDbRoutes, TenantRoutes } from "./routes";
-import { AUTH_PREFIX, DATE_IN_DB_PREFIX, TENANT_PREFIX } from "./utils/key_types";
+import { AuthRoutes, DateInDbRoutes, TenantKeyRoutes, TenantRoutes } from "./routes";
+import { AUTH_PREFIX, DATE_IN_DB_PREFIX, TENANT_KEY_PREFIX, TENANT_PREFIX } from "./utils/key_types";
 import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
@@ -28,6 +28,7 @@ app.use(ip())
 app.group(`${prefix}/${AUTH_PREFIX}`, (app) => app.use(AuthRoutes))
 app.group(`${prefix}/${TENANT_PREFIX}`, (app) => app.use(TenantRoutes))
 app.group(`${prefix}/${DATE_IN_DB_PREFIX}`, (app) => app.use(DateInDbRoutes))
+app.group(`${prefix}/${TENANT_KEY_PREFIX}`, (app) => app.use(TenantKeyRoutes))
 
 //Web Socket
 app.ws('/ws', {

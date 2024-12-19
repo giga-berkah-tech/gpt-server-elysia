@@ -4,9 +4,11 @@ import { JWT_SECRET_KEY } from "../utils/constants";
 import { Context } from 'elysia';
 import { clientRedis } from '..';
 import { SeedingDb, SeedingRedis } from '../seed/seed';
+import { fetchTenantKeys } from './LoadDataService';
 
 
 export const checkValidToken = (c: Context) => {
+ 
   try {
     const token = c.headers.authorization
     jwt.verify(token ?? "", JWT_SECRET_KEY ?? "IS_A_SECRET_KEY");
@@ -23,7 +25,10 @@ export const checkConnRedis = async () => {
       .on('error', (err) => console.log('❌ Redis Failed to connect with error: ', err))
       .connect().then(() => {
         SeedingRedis().then(() => console.log('✅ Successfully seeded to redis')).catch((e) => console.log('❌ Failed seeded to redis'))
-        SeedingDb().then(() => console.log('✅ Successfully seeded to Db postgree')).catch((e) => console.log('❌ Failed seeded to Db postgree'))
+        SeedingDb().then(() =>{
+          console.log('✅ Successfully seeded to Db postgree')
+          fetchTenantKeys()
+        }).catch((e) => console.log('❌ Failed seeded to Db postgree'))
       })
 
   } catch (e: any) {
