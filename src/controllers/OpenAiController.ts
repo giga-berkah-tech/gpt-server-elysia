@@ -34,6 +34,8 @@ const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
                 );
             }
 
+            //============= Redis ===================
+
             await clientRedis.set(
                 REDIS_DATE_IN_DB,
                 JSON.stringify([
@@ -47,6 +49,19 @@ const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
                     }
                 ]),
             );
+
+            //============= Postgress ===================
+
+            await prisma.dateInDb.updateMany({
+                data: {
+                    second: dateNow.getSeconds(),
+                    minutes: dateNow.getMinutes(),
+                    hours: dateNow.getHours(),
+                    day: dateNow.getDay(),
+                    month: dateNow.getMonth() + 1,
+                    year: dateNow.getFullYear()
+                }
+            })
 
         }
     } catch (error) {

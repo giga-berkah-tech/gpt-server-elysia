@@ -22,14 +22,14 @@ export const updateDateNow = async () => {
         
         await clientRedis.set(
             REDIS_DATE_IN_DB,
-            JSON.stringify({
+            JSON.stringify([{
                 "second": dateNow.getSeconds(),
                 "minutes": dateNow.getMinutes(),
                 "hours": dateNow.getHours(),
                 "day": dateNow.getDay(),
                 "month": dateNow.getMonth() + 1,
                 "year": dateNow.getFullYear()
-            }),
+            }]),
         );
         return successResponse("Success update date now", 200)
     }else{
