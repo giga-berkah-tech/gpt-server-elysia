@@ -320,7 +320,6 @@ export const editTenant = async (body: any, tenantId: string) => {
             }
         })
 
-
         fetchTenantKeys()
 
         return successResponse('Success edit tenant', 200)
