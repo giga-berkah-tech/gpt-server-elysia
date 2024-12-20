@@ -214,6 +214,7 @@ export const deleteTenantWithTenantKey = async (body: any) => {
         })
 
         fetchTenantKeys()
+        fetchTenant()
 
         return successResponse('Success delete tenant', 200)
     } else {
@@ -321,6 +322,7 @@ export const editTenant = async (body: any, tenantId: string) => {
         })
 
         fetchTenantKeys()
+        fetchTenant()
 
         return successResponse('Success edit tenant', 200)
     } else {
@@ -352,6 +354,8 @@ export const deleteAllTenant = async () => {
         await prisma.tenantKey.deleteMany()
 
         fetchTenantKeys()
+        fetchTenant()
+        
         return successResponse('Success delete all tenant', 200)
     } else {
         return failedResponse('Tenant or tenant key not found in redis', 404)
