@@ -10,6 +10,8 @@ COPY package.json tsconfig.json src ./
 # Install dependencies
 RUN bun install
 
+RUN bun prisma generate
+
 # Copy the rest of the application code
 COPY . .
 
