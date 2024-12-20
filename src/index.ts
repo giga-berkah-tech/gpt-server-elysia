@@ -77,5 +77,5 @@ app.listen({idleTimeout:20,port:3001})
 checkConnRedis()
 
 console.log(
-  `✅ Elysia is running at ${app.server?.hostname}:${app.server?.port}`
+  `✅ Elysia is running at ${app.server?.hostname}:${app.server?.port}/`
 );
