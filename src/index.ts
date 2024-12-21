@@ -19,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.2')
+app.get('/', () => 'Hello from chatgpt service! v0.0.3')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -77,5 +77,5 @@ app.listen({idleTimeout:20,port:3001})
 checkConnRedis()
 
 console.log(
-  `✅ Elysia is running at ${app.server?.hostname}:${app.server?.port}/`
+  `✅ Elysia is running at ${app.server?.hostname}:${app.server?.port}`
 );

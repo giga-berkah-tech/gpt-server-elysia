@@ -2,6 +2,7 @@ import { Context } from "elysia"
 import { failedResponse, successDataResponse, successResponse } from "../helpers/response_json"
 import { clientRedis } from ".."
 import prisma from "../helpers/prisma_client"
+import { fetchIpAllowed, ipAllowedData } from "../services/LoadDataService"
 
 export const getMyIp = async (ip: any) => {
     const getIp = ip.replaceAll('::ffff:', '')
@@ -24,11 +25,20 @@ export const getListIp = async () => {
 
         return successDataResponse(ipAllowedTemp)
     } else {
-        return failedResponse('ip_allowed key not found in redis', 404)
+        await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedData))
+        ipAllowedData.map((val: any) => {
+            ipAllowedTemp.push({
+                ip: val.ip
+            })
+        })
+
+        return successDataResponse(ipAllowedTemp)
     }
 }
 
 export const addIpAllowed = async (body:{ip:string}) => {
+
+    await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedData))
 
     let ipAllowedTemp: any = []
 
@@ -54,6 +64,8 @@ export const addIpAllowed = async (body:{ip:string}) => {
                 }
             })
 
+            fetchIpAllowed()
+
             return successResponse('Ip added', 200)
         } else {
             return failedResponse('Ip already exist', 400)
@@ -64,6 +76,8 @@ export const addIpAllowed = async (body:{ip:string}) => {
 }
 
 export const removeIpAllowed = async (body:{ip:string}) => {
+
+    await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedData))
 
     let ipAllowedTemp: any = []
 
@@ -86,6 +100,7 @@ export const removeIpAllowed = async (body:{ip:string}) => {
                     ip: body.ip
                 }
             })
+            fetchIpAllowed()
             return successResponse('Ip removed', 200)
         } else {
             return failedResponse('Ip not found', 404)

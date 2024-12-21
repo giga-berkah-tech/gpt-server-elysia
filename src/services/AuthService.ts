@@ -4,7 +4,7 @@ import { JWT_SECRET_KEY } from "../utils/constants";
 import { Context } from 'elysia';
 import { clientRedis } from '..';
 import { SeedingDb, SeedingRedis } from '../seed/seed';
-import { fetchTenant, fetchTenantKeys } from './LoadDataService';
+import { fetchIpAllowed, fetchTenant, fetchTenantKeys } from './LoadDataService';
 
 
 export const checkValidToken = (c: Context) => {
@@ -29,6 +29,7 @@ export const checkConnRedis = async () => {
           console.log('✅ Successfully seeded to Db postgree')
           fetchTenantKeys()
           fetchTenant()
+          fetchIpAllowed()
         }).catch((e) => console.log('❌ Failed seeded to Db postgree'))
       })
 
