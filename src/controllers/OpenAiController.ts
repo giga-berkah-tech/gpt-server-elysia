@@ -62,7 +62,6 @@ const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
                     year: dateNow.getFullYear()
                 }
             })
-
         }
     } catch (error) {
         console.log(error)
@@ -174,18 +173,18 @@ export const chatsOpenAi = async (ws: any, message: any) => {
         const tenantData = JSON.parse(getTenants).find((val: any) => val.id == message.tenant)
         const tenantKey = tenantKeyData.find((val: any) => val.tenantName == message.tenant)
 
-        // if (getToken != "-") {
-        //     const tokenData = JSON.parse(getToken)
-        //     const getUserTenant = await clientRedis.get(`USER_DATA_${tokenData.userId}`) ?? "-"
-        //     userTenantData = JSON.parse(getUserTenant)
-        // } else {
-        //     ws.send(JSON.stringify({ status: 401, message: "sorry, user not valid" }));
-        // }
+        if (getToken != "-") {
+            const tokenData = JSON.parse(getToken)
+            const getUserTenant = await clientRedis.get(`USER_DATA_${tokenData.userId}`) ?? "-"
+            userTenantData = JSON.parse(getUserTenant)
+        } else {
+            ws.send(JSON.stringify({ status: 401, message: "sorry, user not valid" }));
+        }
 
-        // if ((userTenantData.totalPromptTokenUsage + userTenantData.totalCompletionTokenUsage) > tenantData.maxConsumptionToken) {
-        //     ws.send(JSON.stringify({ status: 403, message: "You have exceeded the tenant quota consumption" }));
-        //     ws.close();
-        // }
+        if ((userTenantData.totalPromptTokenUsage + userTenantData.totalCompletionTokenUsage) > tenantData.maxConsumptionToken) {
+            ws.send(JSON.stringify({ status: 403, message: "You have exceeded the tenant quota consumption" }));
+            ws.close();
+        }
 
         //Get messages from client
         const getMessageInput: [] = message.messages
@@ -205,9 +204,9 @@ export const chatsOpenAi = async (ws: any, message: any) => {
 
         console.log('Used tokens: ', usageInfo.usedTokens)
 
-        if (usageInfo.usedTokens > tenantData.maxContext) {
-            // TODO HERE
-        }
+        // if (usageInfo.usedTokens > tenantData.maxContext) {
+        //     // TODO HERE
+        // }
 
         //Send message to OpenAI
 
@@ -304,11 +303,11 @@ export const chatsOpenAi = async (ws: any, message: any) => {
             console.log("WS error => Tenant key not found in redis")
         }
 
-        // if (userTenantData) {
-        //     userTenantData.totalPromptTokenUsage += totalPrompt;
-        //     userTenantData.totalCompletionTokenUsage += totalCompletion;
-        //     await clientRedis.set(`USER_DATA_${userTenantData.userId}`, JSON.stringify(userTenantData));
-        // }
+        if (userTenantData) {
+            userTenantData.totalPromptTokenUsage += totalPrompt;
+            userTenantData.totalCompletionTokenUsage += totalCompletion;
+            await clientRedis.set(`USER_DATA_${userTenantData.userId}`, JSON.stringify(userTenantData));
+        }
 
         tenantTemp = tenantTemp.map((val: any) => {
             if (val.id == message.tenant) {

@@ -19,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.3')
+app.get('/', () => 'Hello from chatgpt service! v0.0.4')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -49,12 +49,12 @@ app.ws('/ws', {
         return;
       }
 
-        // if (! await checkTenantVerifyUser(ws, message)) {
-        //   console.log("WS error =>", message)
-        //   ws.send(JSON.stringify({ status: 401, message: "user not valid" }))
-        //   ws.close();
-        //   return;
-        // };
+        if (! await checkTenantVerifyUser(ws, message)) {
+          console.log("WS error =>", message)
+          ws.send(JSON.stringify({ status: 401, message: "user not valid" }))
+          ws.close();
+          return;
+        };
         chatsOpenAi(ws,message)
     } catch (error) {
       ws.send(JSON.stringify({ status: 500, message: "Connection Error" }))
