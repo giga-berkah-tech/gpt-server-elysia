@@ -1,5 +1,5 @@
 # Use a Bun image as the base
-FROM oven/bun:latest
+FROM oven/bun:1.1.40
 
 # Set the working directory in the container
 WORKDIR /app
