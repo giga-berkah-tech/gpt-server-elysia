@@ -4,12 +4,9 @@ import { AUTH_PREFIX, DATE_IN_DB_PREFIX, TENANT_KEY_PREFIX, TENANT_PREFIX } from
 import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
-import { SeedingRedis } from "./seed/seed";
-import { ElysiaWS } from "elysia/dist/ws";
-import { TypeCheck } from "elysia/dist/type-system";
-import { ServerWebSocket } from "bun";
 import { checkConnRedis } from "./services/AuthService";
 import { chatsOpenAi, checkTenantVerifyUser } from "./controllers/OpenAiController";
+import fs from 'fs'
 
 export const clientRedis = createClient({
   url: REDIS_URL,
@@ -19,7 +16,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.4')
+app.get('/', () => 'Hello from chatgpt service! v0.0.5')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -29,6 +26,20 @@ app.group(`${prefix}/${AUTH_PREFIX}`, (app) => app.use(AuthRoutes))
 app.group(`${prefix}/${TENANT_PREFIX}`, (app) => app.use(TenantRoutes))
 app.group(`${prefix}/${DATE_IN_DB_PREFIX}`, (app) => app.use(DateInDbRoutes))
 app.group(`${prefix}/${TENANT_KEY_PREFIX}`, (app) => app.use(TenantKeyRoutes))
+
+app.get(`${prefix}/download/list_api.txt`, async () => {
+  const filePath = `./resources/list_api.txt`;
+  try {
+    const stat = fs.statSync(filePath);
+    if (!stat.isFile()) {
+      throw new Error('File not found');
+    }
+    return fs.createReadStream(filePath);
+  } catch (error) {
+    console.error('Error downloading file:', error);
+    return { message: 'File not found' };
+  }
+});
 
 //Web Socket
 app.ws('/ws', {
