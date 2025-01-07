@@ -16,7 +16,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.5')
+app.get('/', () => 'Hello from chatgpt service! v0.0.6')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -27,19 +27,16 @@ app.group(`${prefix}/${TENANT_PREFIX}`, (app) => app.use(TenantRoutes))
 app.group(`${prefix}/${DATE_IN_DB_PREFIX}`, (app) => app.use(DateInDbRoutes))
 app.group(`${prefix}/${TENANT_KEY_PREFIX}`, (app) => app.use(TenantKeyRoutes))
 
-app.get(`${prefix}/download/list_api.txt`, async () => {
-  const filePath = `./resources/list_api.txt`;
-  try {
-    const stat = fs.statSync(filePath);
-    if (!stat.isFile()) {
-      throw new Error('File not found');
-    }
-    return fs.createReadStream(filePath);
-  } catch (error) {
-    console.error('Error downloading file:', error);
-    return { message: 'File not found' };
-  }
-});
+app.get('/download', async ({ params, set }) => {
+  const file = await fs.promises.readFile('./resources/list_api.txt', 'utf-8'); 
+    return new Response(file, {
+      headers: {
+        'Content-Type': 'text/plain', // Adjust based on your file type
+        'Content-Disposition': 'attachment; filename="list_api.txt"', 
+      },
+    });
+})
+
 
 //Web Socket
 app.ws('/ws', {
