@@ -1,4 +1,4 @@
 [
-    "https://chatlc10.devtest88.com",
+    "https://chatlc101.devtest88.com",
     "http://34.92.7.108"
 ]
