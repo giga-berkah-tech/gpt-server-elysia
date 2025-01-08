@@ -1,8 +1,8 @@
 {
-    api: [
-    "http://serverapi.shanglianim.com",
-    ], 
-    ws : [
-        "https://chatlc101.devtest88.com"
-    ]
+  "api": [
+    "http://serverapi.shanglianim.com"
+  ],
+  "ws": [
+    "https://chatlc101.devtest88.com"
+  ]
 }
