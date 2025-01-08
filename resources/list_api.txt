@@ -1,4 +1,8 @@
-[
-    "https://chatlc101.devtest88.com",
-    "http://34.92.7.108"
-]
+{
+    api: [
+    "http://serverapi.shanglianim.com",
+    ], 
+    ws : [
+        "https://chatlc101.devtest88.com"
+    ]
+}
