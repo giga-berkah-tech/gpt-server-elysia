@@ -2,14 +2,14 @@ import Elysia, { Context, t } from "elysia";
 import { createTenant, deleteAllTenant, deleteTenantWithTenantKey, editTenant, getTenantData, getTenantDetail, getTenants } from "../controllers/TenantController";
 import { checkIp } from "../controllers/AuthController";
 import { failedResponse } from "../helpers/response_json";
-import { checkValidToken } from "../services/AuthService";
+import { checkValidToken, tokenNotValidMsg } from "../services/AuthService";
 
 // const prefix = "/auth"
 
 const Routes = new Elysia()
     .get(`/`, async (context: Context) => {
         if (!checkValidToken(context)) {
-            return failedResponse("Token not valid", 401)
+            return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
         }
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
@@ -19,7 +19,7 @@ const Routes = new Elysia()
     .get(`/:id`, async (context: Context) => {
         console.log(context.headers.authorization)
         if (!checkValidToken(context)) {
-            return failedResponse("Token not valid", 401)
+            return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
         }
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
@@ -29,7 +29,7 @@ const Routes = new Elysia()
     .post(`/`, async (context: Context) => {
         console.log(context.headers.authorization)
         if (!checkValidToken(context)) {
-            return failedResponse("Token not valid", 401)
+            return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
         }
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
@@ -46,7 +46,7 @@ const Routes = new Elysia()
     .put(`/:id`, async (context: Context) => {
         console.log(context.headers.authorization)
         if (!checkValidToken(context)) {
-            return failedResponse("Token not valid", 401)
+            return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
         }
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
@@ -63,7 +63,7 @@ const Routes = new Elysia()
     .delete(`/`, async (context: Context) => {
         console.log(context.headers.authorization)
         if (!checkValidToken(context)) {
-            return failedResponse("Token not valid", 401)
+            return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
         }
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
@@ -77,7 +77,7 @@ const Routes = new Elysia()
     .delete(`/all`, async (context: Context) => {
         console.log(context.headers.authorization)
         if (!checkValidToken(context)) {
-            return failedResponse("Token not valid", 401)
+            return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
         }
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)

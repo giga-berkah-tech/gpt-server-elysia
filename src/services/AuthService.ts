@@ -7,6 +7,8 @@ import { SeedingDb, SeedingRedis } from '../seed/seed';
 import { fetchIpAllowed, fetchTenant, fetchTenantKeys } from './LoadDataService';
 
 
+export let tokenNotValidMsg = "Token not valid"
+
 export const checkValidToken = (c: Context) => {
  
   try {
@@ -14,7 +16,8 @@ export const checkValidToken = (c: Context) => {
     jwt.verify(token ?? "", JWT_SECRET_KEY ?? "IS_A_SECRET_KEY");
     return true
   } catch (error: any) {
-    console.log(error)
+    console.log(error.message)
+    tokenNotValidMsg = error.message
     return false
   }
 }
