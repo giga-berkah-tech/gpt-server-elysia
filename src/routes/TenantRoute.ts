@@ -3,6 +3,7 @@ import { createTenant, deleteAllTenant, deleteTenantWithTenantKey, editTenant, g
 import { checkIp } from "../controllers/AuthController";
 import { failedResponse } from "../helpers/response_json";
 import { checkValidToken, tokenNotValidMsg } from "../services/AuthService";
+import { json } from "stream/consumers";
 
 // const prefix = "/auth"
 
@@ -34,7 +35,7 @@ const Routes = new Elysia()
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
         }
-       return createTenant(context.body)
+        return createTenant(context.body)
     }, {
         body: t.Object({
             name: t.String(),
@@ -51,12 +52,12 @@ const Routes = new Elysia()
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
         }
-        return editTenant(context.body,context.params.id)
+        return editTenant(context.body, context.params.id)
     }, {
         body: t.Object({
-            tenant_name: t.String(),
-            max_consumption_token: t.Number(),
-            max_context: t.Number(),
+            name: t.String(),
+            max_context: t.String(),
+            chat_gpt_key: t.String(),
             status: t.Boolean(),
         }),
     })
@@ -90,6 +91,9 @@ const Routes = new Elysia()
             return failedResponse("You are not allowed", 403)
         }
         return getTenantData(context.params.id)
+    }).onError(({ code, error }: any) => {
+        var message = JSON.parse(error.message)
+        return failedResponse(message.errors.map((val: any) => val.summary).join(', '), 200)
     })
 
 export const TenantRoutes = Routes;

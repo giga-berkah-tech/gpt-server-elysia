@@ -38,6 +38,9 @@ const Routes = new Elysia()
             console.error('Error downloading file:', error);
             return { message: 'File not found' };
           }
+    }).onError(({ code, error }: any)=>{
+        var message = JSON.parse(error.message)
+        return failedResponse(message.errors.map((val: any) => val.summary).join(', '),200) 
     });
 
 export const TenantKeyRoutes = Routes;
