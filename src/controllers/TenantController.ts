@@ -156,7 +156,7 @@ export const deleteTenantWithTenantKey = async (body: any) => {
     let tenantKeyTemp: TenantKeys[] = []
 
 
-    if (body.tenant_name == null || body.tenant_name == '') {
+    if (body.name == null || body.name == '') {
         return failedResponse('Tenant name is required', 422)
     }
 
@@ -176,18 +176,18 @@ export const deleteTenantWithTenantKey = async (body: any) => {
             })
         })
 
-        if (JSON.parse(getTenants).find((val: any) => val.id == body.tenant_name) == null) {
+        if (JSON.parse(getTenants).find((val: any) => val.id == body.name) == null) {
             return failedResponse('Tenant not found', 404)
         }
 
-        if (tenantKeyData.find((val: any) => val.tenantName == body.tenant_name) == null) {
+        if (tenantKeyData.find((val: any) => val.tenantName == body.name) == null) {
             return failedResponse('Tenant key not found', 404)
         }
 
         //============= Redis ===================
 
-        tenantTemp = tenantTemp.filter((val: any) => val.id != body.tenant_name)
-        tenantKeyTemp = tenantKeyTemp.filter((val: any) => val.tenantName != body.tenant_name)
+        tenantTemp = tenantTemp.filter((val: any) => val.id != body.name)
+        tenantKeyTemp = tenantKeyTemp.filter((val: any) => val.tenantName != body.name)
 
         await clientRedis.set(
             REDIS_TENANT,
@@ -203,13 +203,13 @@ export const deleteTenantWithTenantKey = async (body: any) => {
 
         await prisma.tenant.delete({
             where: {
-                id: body.tenant_name
+                id: body.name
             }
         })
 
         await prisma.tenantKey.delete({
             where: {
-                tenantName: body.tenant_name
+                tenantName: body.name
             }
         })
 
@@ -230,10 +230,11 @@ export const editTenant = async (body: any, tenantId: string) => {
     let tenantKeyTemp: TenantKeys[] = []
 
 
-    if (body.tenant_name == null || body.max_context == null || body.tenant_name == '' || body.max_context == '' || body.status == null) {
+    if (body.name == null || body.max_context == null || body.name == '' || body.max_context == '' || body.status == null) {
         return failedResponse('Name tenant, max context & status must not be empty', 422)
     }
 
+  
     const getTenants = await clientRedis.get(REDIS_TENANT) ?? null
     const getTenantKeys = tenantKeyData
 
@@ -251,13 +252,13 @@ export const editTenant = async (body: any, tenantId: string) => {
             })
         })
 
-        if (JSON.parse(getTenants).find((val: any) => val.id == tenantId) == null) {
-            return failedResponse('Tenant not found', 404)
-        }
+        // if (JSON.parse(getTenants).find((val: any) => val.id == tenantId) == null) {
+        //     return failedResponse('Tenant not found', 404)
+        // }
 
-        if (getTenantKeys.find((val: any) => val.tenantName == tenantId) == null) {
-            return failedResponse('Tenant key not found', 404)
-        }
+        // if (getTenantKeys.find((val: any) => val.tenantName == tenantId) == null) {
+        //     return failedResponse('Tenant key not found', 404)
+        // }
 
         //============= Redis ===================
 
@@ -265,8 +266,8 @@ export const editTenant = async (body: any, tenantId: string) => {
             if (val.id == tenantId) {
                 return {
                     ...val,
-                    id: body.tenant_name == undefined ? val.tenantName : body.tenant_name.replaceAll(' ', '_'),
-                    name: body.tenant_name == undefined ? val.tenantName : body.tenant_name,
+                    id: body.name == undefined ? val.tenantName : body.name.replaceAll(' ', '_'),
+                    name: body.name == undefined ? val.tenantName : body.name,
                     maxContext: body.max_context == undefined ? val.maxContext : parseInt(body.max_context),
                     maxConsumptionToken: body.max_consumption_token == undefined ? val.maxConsumptionToken : parseInt(body.max_consumption_token),
                     status: body.status == undefined ? val.status : body.status,
@@ -277,7 +278,7 @@ export const editTenant = async (body: any, tenantId: string) => {
         })
 
         // tenantKeyTemp = tenantKeyTemp.map((val: any) => {
-        //     if (val.tenantName == body.tenant_name) {
+        //     if (val.tenantName == body.name) {
         //         return {
         //             ...val,
         //             chatGptKey: body.chat_gpt_key == undefined ? val.chatGptKey : body.chat_gpt_key
@@ -304,8 +305,8 @@ export const editTenant = async (body: any, tenantId: string) => {
                 id: tenantId
             },
             data: {
-                id: body.tenant_name == undefined ? body.tenant_name : body.tenant_name.replaceAll(' ', '_'),
-                name: body.tenant_name == undefined ? body.tenant_name : body.tenant_name,
+                id: body.name == undefined ? body.name : body.name.replaceAll(' ', '_'),
+                name: body.name == undefined ? body.name : body.name,
                 maxContext: body.max_context == undefined ? body.max_context : parseInt(body.max_context),
                 maxConsumptionToken: body.max_consumption_token == undefined ? body.max_consumption_token : parseInt(body.max_consumption_token),
                 status: body.status == undefined ? body.status : body.status,
@@ -317,7 +318,7 @@ export const editTenant = async (body: any, tenantId: string) => {
                 tenantName: tenantId
             },
             data: {
-                tenantName: body.tenant_name == undefined ? body.tenant_name : body.tenant_name.replaceAll(' ', '_')
+                tenantName: body.name == undefined ? body.name : body.name.replaceAll(' ', '_')
             }
         })
 
