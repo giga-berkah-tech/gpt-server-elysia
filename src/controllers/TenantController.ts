@@ -10,7 +10,7 @@ export const getTenants = async () => {
     let tenantTemp: Tenant[] = []
     const getTenantRedis:any = await clientRedis.get(REDIS_TENANT) ?? null
     const getTenantKey = tenantKeyData
-    if (getTenantRedis != null) {
+    if (getTenantRedis != null && JSON.parse(getTenantRedis).length > 0) {
         JSON.parse(getTenantRedis).map((val: any) => {
             tenantTemp.push({
                 ...val,
@@ -252,9 +252,9 @@ export const editTenant = async (body: any, tenantId: string) => {
             })
         })
 
-        // if (JSON.parse(getTenants).find((val: any) => val.id == tenantId) == null) {
-        //     return failedResponse('Tenant not found', 404)
-        // }
+        if (JSON.parse(getTenants).find((val: any) => val.id == tenantId) == null) {
+            return failedResponse('Tenant not found', 404)
+        }
 
         // if (getTenantKeys.find((val: any) => val.tenantName == tenantId) == null) {
         //     return failedResponse('Tenant key not found', 404)
