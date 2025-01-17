@@ -8,6 +8,8 @@
     "https://chatlc101.devtest88.com"
   ],
   "gpt": [
+    "https://g.com",
+    "https://gyyynim.com",
     "https://gpt.shanglianim.com",
     "http://121.41.22.42:8081"
 
