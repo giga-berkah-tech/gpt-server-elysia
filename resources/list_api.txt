@@ -1,8 +1,15 @@
 {
   "api": [
-    "http://serverapi.shanglianim.com"
+    "http://serverapi.shanglianim.com",
+    "https://chatlc101.devtest88.com"
   ],
   "ws": [
+    "http://121.41.22.42:8080",
     "https://chatlc101.devtest88.com"
+  ],
+  "gpt": [
+    "https://gpt.shanglianim.com",
+    "http://121.41.22.42:8081"
+
   ]
 }
