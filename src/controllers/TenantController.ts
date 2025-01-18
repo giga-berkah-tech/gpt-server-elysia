@@ -313,12 +313,24 @@ export const editTenant = async (body: any, tenantId: string) => {
             }
         })
 
+        const tenantData = await prisma.tenant.findFirst({
+            where: {
+                id: tenantId
+            }
+        });
+        const tenantKeyData = await prisma.tenantKey.findFirst({
+            where: {
+                tenantName: tenantId
+            }
+        });
+
         await prisma.tenantKey.update({
             where: {
                 tenantName: tenantId
             },
             data: {
-                tenantName: body.name == undefined ? body.name : body.name.replaceAll(' ', '_')
+                tenantName: body.name == undefined ? tenantData?.name : body.name.replaceAll(' ', '_'),
+                chatGptKey: body.chat_gpt_key == undefined ? tenantKeyData?.chatGptKey : body.chat_gpt_key
             }
         })
 

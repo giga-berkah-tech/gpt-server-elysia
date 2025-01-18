@@ -12,10 +12,16 @@ export const fetchTenantKeys = async () => {
         const tenantKeys = await prisma.tenantKey.findMany();
 
         tenantKeys.map((val: any) => {
-            if (!tenantKeyData.find((item) => item.tenantName === val.tenantName)) {
+            const findTenantKey = tenantKeyData.find((item) => item.tenantName === val.tenantName);
+            if (!findTenantKey) {
                 tenantKeyData.push({
                     ...val
                 })
+            } else {
+                const index = tenantKeyData.indexOf(findTenantKey);
+                tenantKeyData[index] = {
+                    ...val
+                }
             }
         })
     } catch (error) {
@@ -30,10 +36,16 @@ export const fetchTenant = async () => {
         const tenants = await prisma.tenant.findMany();
 
         tenants.map((val: any) => {
-            if (!tenantData.find((item) => item.id === val.id)) {
+            const findTenant = tenantData.find((item) => item.id === val.id);
+            if (!findTenant) {
                 tenantData.push({
                     ...val
                 })
+            } else {
+                const index = tenantData.indexOf(findTenant);
+                tenantData[index] = {
+                    ...val
+                }
             }
         })
     } catch (error) {
@@ -47,10 +59,16 @@ export const fetchIpAllowed = async () => {
         const ipAlloweds = await prisma.ipAllowed.findMany();
 
         ipAlloweds.map((val: any) => {
-            if (!ipAllowedData.find((item) => item.ip === val.ip)) {
+            const findIpAllowed = ipAllowedData.find((item) => item.ip === val.ip);
+            if (!findIpAllowed) {
                 ipAllowedData.push({
                     ...val
-                })
+                });
+            } else {
+                const index = ipAllowedData.indexOf(findIpAllowed);
+                ipAllowedData[index] = {
+                    ...val
+                };
             }
         })
     } catch (error) {

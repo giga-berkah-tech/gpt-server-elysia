@@ -57,7 +57,7 @@ const Routes = new Elysia()
         body: t.Object({
             name: t.String(),
             max_context: t.String(),
-            chat_gpt_key: t.String(),
+            chat_gpt_key: t.Optional(t.String()),
             status: t.Boolean(),
         }),
     })
