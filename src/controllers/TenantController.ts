@@ -98,7 +98,7 @@ export const createTenant = async (body: any) => {
         tenantTemp.push({
             id: body.name.replaceAll(' ', '_').toString(),
             name: body.name.toString(),
-            maxContext: parseInt(body.max_context),
+            maxContext: body.max_context == undefined ? 1000000 : parseInt(body.max_context),
             maxConsumptionToken: body.max_consumption_token == undefined ? 1000000 : parseInt(body.max_consumption_token),
             totalPromptTokenUsage: 0,
             totalCompletionTokenUsage: 0,
@@ -125,7 +125,7 @@ export const createTenant = async (body: any) => {
             data: {
                 id: body.name.replaceAll(' ', '_').toString(),
                 name: body.name.toString(),
-                maxContext: parseInt(body.max_context),
+                maxContext: body.max_context == undefined ? 1000000 : parseInt(body.max_context),
                 maxConsumptionToken: body.max_consumption_token == undefined ? 1000000 : parseInt(body.max_consumption_token),
                 totalPromptTokenUsage: 0,
                 totalCompletionTokenUsage: 0,
@@ -224,17 +224,29 @@ export const deleteTenantWithTenantKey = async (body: any) => {
 
 export const editTenant = async (body: any, tenantId: string) => {
 
+    const tenantDataDb = await prisma.tenant.findFirst({
+        where: {
+            id: tenantId
+        }
+    });
+
+    const tenantKeyDataDb = await prisma.tenantKey.findFirst({
+        where: {
+            tenantName: tenantId
+        }
+    });
+
     await clientRedis.set("tenants", JSON.stringify(tenantData))
 
     let tenantTemp: Tenant[] = []
     let tenantKeyTemp: TenantKeys[] = []
 
 
-    if (body.name == null || body.max_context == null || body.name == '' || body.max_context == '' || body.status == null) {
+    if (body.name == null  || body.name == '' || body.status == null) {
         return failedResponse('Name tenant, max context & status must not be empty', 422)
     }
 
-  
+
     const getTenants = await clientRedis.get(REDIS_TENANT) ?? null
     const getTenantKeys = tenantKeyData
 
@@ -307,30 +319,21 @@ export const editTenant = async (body: any, tenantId: string) => {
             data: {
                 id: body.name == undefined ? body.name : body.name.replaceAll(' ', '_'),
                 name: body.name == undefined ? body.name : body.name,
-                maxContext: body.max_context == undefined ? body.max_context : parseInt(body.max_context),
-                maxConsumptionToken: body.max_consumption_token == undefined ? body.max_consumption_token : parseInt(body.max_consumption_token),
+                maxContext: body.max_context == undefined ? tenantDataDb?.maxContext : parseInt(body.max_context),
+                maxConsumptionToken: body.max_consumption_token == undefined ? tenantDataDb?.maxConsumptionToken : parseInt(body.max_consumption_token),
                 status: body.status == undefined ? body.status : body.status,
             }
         })
 
-        const tenantData = await prisma.tenant.findFirst({
-            where: {
-                id: tenantId
-            }
-        });
-        const tenantKeyData = await prisma.tenantKey.findFirst({
-            where: {
-                tenantName: tenantId
-            }
-        });
+        
 
         await prisma.tenantKey.update({
             where: {
                 tenantName: tenantId
             },
             data: {
-                tenantName: body.name == undefined ? tenantData?.name : body.name.replaceAll(' ', '_'),
-                chatGptKey: body.chat_gpt_key == undefined ? tenantKeyData?.chatGptKey : body.chat_gpt_key
+                tenantName: body.name == undefined ? tenantDataDb?.name : body.name.replaceAll(' ', '_'),
+                chatGptKey: body.chat_gpt_key == undefined ? tenantKeyDataDb?.chatGptKey : body.chat_gpt_key
             }
         })
 

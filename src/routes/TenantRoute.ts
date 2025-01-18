@@ -39,7 +39,8 @@ const Routes = new Elysia()
     }, {
         body: t.Object({
             name: t.String(),
-            max_context: t.String(),
+            max_context: t.Optional(t.String()),
+            max_consumption_token: t.Optional(t.String()) ,
             chat_gpt_key: t.String(),
             status: t.Boolean(),
         }),
@@ -56,7 +57,8 @@ const Routes = new Elysia()
     }, {
         body: t.Object({
             name: t.String(),
-            max_context: t.String(),
+            max_context: t.Optional(t.String()) ,
+            max_consumption_token: t.Optional(t.String()),
             chat_gpt_key: t.Optional(t.String()),
             status: t.Boolean(),
         }),
