@@ -1,32 +1,27 @@
-import axios from "axios"
-import { clientRedis } from ".."
-import { DateInDb } from "../types/date_in_db"
-import { Tenant, UserTenant } from "../types/tenant"
-import { API_URL, CHAT_GPT_MODEL } from "../utils/constants"
-import { REDIS_DATE_IN_DB, REDIS_TENANT } from "../utils/key_types"
-import { GPTTokens } from "gpt-tokens"
-import OpenAI from "openai"
-import { tenantKeyData } from "../services/LoadDataService"
-import prisma from "../helpers/prisma_client"
+import OpenAI from "openai";
+import { Tenant } from "../types/tenant";
+import { clientRedis } from "..";
+import { REDIS_TENANT } from "../utils/key_types";
+import { tenantKeyData } from "../services/LoadDataService";
+import prisma from "../helpers/prisma_client";
 
-
-
-export const chatsOpenAi = async (ws: any, message: any) => {
+export const chatsOpenRouter = async (ws: any, message: any) => {
 
     try {
-        let chatsTemp = []
+        let chatsTemp = [];
+
         let tenantTemp: Tenant[] = []
         let userTenantData: any
-
+    
         let totalPrompt = 0
         let totalCompletion = 0
-
+    
         const getTenants = await clientRedis.get(REDIS_TENANT) ?? "-"
         const getToken: any = await clientRedis.get(`USER_TOKEN_${message.token}`) ?? "-"
-
+    
         const tenantData = JSON.parse(getTenants).find((val: any) => val.id == message.tenant)
         const tenantKey = tenantKeyData.find((val: any) => val.tenantName == message.tenant)
-
+    
         if (getToken != "-") {
             const tokenData = JSON.parse(getToken)
             const getUserTenant = await clientRedis.get(`USER_DATA_${tokenData.userId}`) ?? "-"
@@ -34,109 +29,105 @@ export const chatsOpenAi = async (ws: any, message: any) => {
         } else {
             ws.send(JSON.stringify({ status: 401, message: "sorry, user not valid" }));
         }
-
+    
         if ((userTenantData.totalPromptTokenUsage + userTenantData.totalCompletionTokenUsage) > tenantData.maxConsumptionToken) {
             ws.send(JSON.stringify({ status: 403, message: "You have exceeded the tenant quota consumption" }));
             ws.close();
         }
-
-        //Get messages from client
-        const getMessageInput: [] = message.messages
-
-        //Get length token
-        // const usageInfo = new GPTTokens({
-        //     model: "gpt-4o-mini",
-        //     messages: [
-        //         ...getMessageInput.map((val: any) => {
-        //             return {
-        //                 role: val.role,
-        //                 content: val.content
-        //             }
-        //         })
-        //     ],
-        // })
-
-        // console.log('Used tokens: ', usageInfo.usedTokens)
-
-        // if (usageInfo.usedTokens > tenantData.maxContext) {
-        //     // TODO HERE
-        // }
-
-        //Send message to OpenAI
-
+    
+        const getMessageInput: [] = message.messages;
+    
         let messagesOpenAi = [
             {
                 role: 'system',
                 content: `
-                        if user request image,video please give only link but not giving search URL, just give a random url link but not from example.com !!!
-       
-                    `
+                    Respond with complete words and phrases, avoiding unnecessary splitting of words. Ensure the response is structured properly, without fragmenting words unnaturally.
+                `
             },
             ...getMessageInput.map((val: any) => {
                 return {
                     role: val.role,
                     content: val.content
-                }
+                };
             })
         ];
-
-        const clientOpenAi = new OpenAI({
-            apiKey: tenantKey?.chatGptKey
+    
+        const openai = new OpenAI({
+            baseURL: "https://openrouter.ai/api/v1",
+            apiKey: "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",
         });
-
-        const openAi = await clientOpenAi.chat.completions.create({
-            messages: messagesOpenAi,
-            model: CHAT_GPT_MODEL!,
-            // max_completion_tokens:  Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxCompletionToken),
-            // Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxInput),
+    
+        const completionOpenAi = await openai.chat.completions.create({
+            model: "deepseek/deepseek-chat",
             stream: true,
             stream_options: {
                 include_usage: true
-            }
+            },
+            messages: messagesOpenAi
         });
-        let frameSize = 0;
-        let frameTemp = [];
+    
+        let buffer = ''; // Buffer to accumulate response chunks
+        let wordBuffer: string[] = []; // Buffer to accumulate complete words
         let sendId = 0;
-
-        for await (const chunk of openAi) {
-            if (chunk.choices.length != 0) {
-                chatsTemp.push({
-                    // role: chunk.choices[0].delta.role,
-                    content: chunk.choices[0].delta.content
-                })
-                frameSize += 1;
-                frameTemp.push(chunk.choices[0].delta.content)
-                if (frameSize == 10) {
+    
+        for await (const chunk of completionOpenAi) {
+            if (chunk.choices.length !== 0) {
+                const content = chunk.choices[0].delta.content || '';
+                buffer += content; // Append the new content to the buffer
+    
+                // Split the buffer into words
+                const words = buffer.split(' ');
+                if (words.length > 1) {
+                    // Add all complete words to the wordBuffer
+                    wordBuffer.push(...words.slice(0, -1));
+    
+                    // Keep the last (possibly incomplete) word in the buffer
+                    buffer = words[words.length - 1];
+                }
+    
+                // Send chunks only if there are at least 5 words
+                if (wordBuffer.length >= 5) {
+                    const chunkToSend = wordBuffer.splice(0, 5); // Take the first 5 words
                     sendId += 1;
                     const data = {
                         status: 200,
                         uuid: message.uuid,
                         id: sendId,
                         maxContext: tenantData.maxContext,
-                        msg: frameTemp
-                    }
+                        msg: chunkToSend // Send the chunk of 5 words
+                    };
                     ws.send(JSON.stringify(data));
-                    // console.log("=>",JSON.stringify(data))
-                    frameSize = 0;
-                    frameTemp = [];
                 }
-            } else {
-                totalPrompt = chunk.usage?.prompt_tokens ?? 0
-                totalCompletion = chunk.usage?.completion_tokens ?? 0
             }
+    
+            totalPrompt += chunk.usage?.prompt_tokens ?? 0;
+            totalCompletion += chunk.usage?.completion_tokens ?? 0;
         }
-
-        if (frameTemp.length != 0) {
+    
+        // Send any remaining words in the wordBuffer (if any)
+        if (wordBuffer.length > 0) {
             sendId += 1;
             const data = {
                 status: 200,
                 uuid: message.uuid,
                 id: sendId,
                 maxContext: tenantData.maxContext,
-                msg: frameTemp
-            }
+                msg: wordBuffer // Send the remaining words as a single batch
+            };
             ws.send(JSON.stringify(data));
-            // console.log("=>",JSON.stringify(data))
+        }
+    
+        // Send any remaining content in the buffer (incomplete word)
+        if (buffer) {
+            sendId += 1;
+            const data = {
+                status: 200,
+                uuid: message.uuid,
+                id: sendId,
+                maxContext: tenantData.maxContext,
+                msg: [buffer] // Send the remaining content
+            };
+            ws.send(JSON.stringify(data));
         }
 
         if (getTenants != null) {
@@ -191,11 +182,11 @@ export const chatsOpenAi = async (ws: any, message: any) => {
                 totalCompletionTokenUsage: tenantData.totalCompletionTokenUsage + totalCompletion
             }
         })
-        
-    } catch (error: any) {
+
+    } catch (error:any) {
         ws.send(JSON.stringify({ status: error.status, message: error }));
         console.log("WS error =>", error)
         ws.close();
-
     }
-}
+   
+};

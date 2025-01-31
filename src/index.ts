@@ -5,8 +5,11 @@ import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
 import { checkConnRedis } from "./services/AuthService";
-import { chatsOpenAi, checkTenantVerifyUser } from "./controllers/OpenAiController";
+import { chatsOpenAi } from "./controllers/OpenAiController";
 import fs from 'fs'
+import { chatsOpenRouter } from "./controllers/OpenAiWithOpenRouterController";
+import { checkTenantVerifyUser } from "./controllers/UtilsForOpenAiController";
+
 
 export const clientRedis = createClient({
   url: REDIS_URL,
@@ -16,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.18')
+app.get('/', () => 'Hello from chatgpt service! v0.0.19')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -63,7 +66,7 @@ app.ws('/ws', {
           ws.close();
           return;
         };
-        chatsOpenAi(ws,message)
+        chatsOpenRouter(ws,message)
     } catch (error) {
       ws.send(JSON.stringify({ status: 500, message: "Connection Error" }))
       ws.close();
