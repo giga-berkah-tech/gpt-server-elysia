@@ -19,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.20')
+app.get('/', () => 'Hello from chatgpt service! v0.0.21')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
