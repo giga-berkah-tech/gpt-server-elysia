@@ -19,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.26')
+app.get('/', () => 'Hello from chatgpt service! v0.0.27')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -66,7 +66,7 @@ app.ws('/ws', {
           ws.close();
           return;
         };
-        chatsOpenRouter(ws,message)
+        chatsOpenAi(ws,message)
     } catch (error) {
       ws.send(JSON.stringify({ status: 500, message: "Connection Error" }))
       ws.close();
