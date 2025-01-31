@@ -4,6 +4,7 @@ import { clientRedis } from "..";
 import { REDIS_TENANT } from "../utils/key_types";
 import { tenantKeyData } from "../services/LoadDataService";
 import prisma from "../helpers/prisma_client";
+import { OPEN_ROUTER_API_KEY, OPEN_ROUTER_API_URL } from "../utils/constants";
 
 export const chatsOpenRouter = async (ws: any, message: any) => {
 
@@ -53,8 +54,8 @@ export const chatsOpenRouter = async (ws: any, message: any) => {
         ];
     
         const openai = new OpenAI({
-            baseURL: "https://openrouter.ai/api/v1",
-            apiKey: "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",
+            baseURL: OPEN_ROUTER_API_URL,
+            apiKey: OPEN_ROUTER_API_KEY,
         });
     
         const completionOpenAi = await openai.chat.completions.create({
