@@ -19,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.19')
+app.get('/', () => 'Hello from chatgpt service! v0.0.20')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -43,12 +43,12 @@ app.get('/download', async ({ params, set }) => {
 
 //Web Socket
 app.ws('/ws', {
-  body: t.Object({
-    tenant: t.String(),
-    token: t.String(),
-    messages: t.Any(),
-    uuid: t.String(),
-  }),
+  // body: t.Object({
+  //   tenant: t.String(),
+  //   token: t.String(),
+  //   messages: t.Any(),
+  //   uuid: t.String(),
+  // }),
   open: (ws) => {
     console.log("WS => Client connected");
   }, 

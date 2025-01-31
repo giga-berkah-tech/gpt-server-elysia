@@ -54,7 +54,7 @@ export const chatsOpenRouter = async (ws: any, message: any) => {
     
         const openai = new OpenAI({
             baseURL: "https://openrouter.ai/api/v1",
-            apiKey: "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",
+            apiKey: "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",
         });
     
         const completionOpenAi = await openai.chat.completions.create({
