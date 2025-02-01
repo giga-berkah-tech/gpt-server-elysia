@@ -9,6 +9,8 @@ export const ipAllowedData:IpAllowed[] = []
 export const fetchTenantKeys = async () => {
 
     try {
+        tenantKeyData.splice(0, tenantKeyData.length);
+        
         const tenantKeys = await prisma.tenantKey.findMany();
 
         tenantKeys.map((val: any) => {
@@ -24,6 +26,8 @@ export const fetchTenantKeys = async () => {
                 }
             }
         })
+        console.log("lenght Tenant Keys => ", tenantKeys.length)
+        
     } catch (error) {
         console.log("❌ Failed fetch tenant keys with error: ", error)
     }
@@ -33,6 +37,9 @@ export const fetchTenantKeys = async () => {
 export const fetchTenant = async () => {
 
     try {
+
+        tenantData.splice(0, tenantData.length);
+
         const tenants = await prisma.tenant.findMany();
 
         tenants.map((val: any) => {
@@ -48,6 +55,7 @@ export const fetchTenant = async () => {
                 }
             }
         })
+        console.log("lenght Tenant => ", tenantData.length)
     } catch (error) {
         console.log("❌ Failed fetch tenant with error: ", error)
     }
@@ -56,6 +64,8 @@ export const fetchTenant = async () => {
 export const fetchIpAllowed = async () => {
 
     try {
+        ipAllowedData.splice(0, ipAllowedData.length);
+        
         const ipAlloweds = await prisma.ipAllowed.findMany();
 
         ipAlloweds.map((val: any) => {

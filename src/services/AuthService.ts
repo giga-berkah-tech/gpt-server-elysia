@@ -27,13 +27,13 @@ export const checkConnRedis = async () => {
     clientRedis
       .on('error', (err) => console.log('❌ Redis Failed to connect with error: ', err))
       .connect().then(() => {
-        SeedingRedis().then(() => console.log('✅ Successfully seeded to redis')).catch((e) => console.log('❌ Failed seeded to redis'))
         SeedingDb().then(() =>{
           console.log('✅ Successfully seeded to Db postgree')
           fetchTenantKeys()
           fetchTenant()
           fetchIpAllowed()
         }).catch((e) => console.log('❌ Failed seeded to Db postgree'))
+        SeedingRedis().then(() => console.log('✅ Successfully seeded to redis')).catch((e) => console.log('❌ Failed seeded to redis'))
       })
 
   } catch (e: any) {

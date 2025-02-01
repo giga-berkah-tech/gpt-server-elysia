@@ -59,6 +59,7 @@ const dateInDbData =
 
 
 
+// Seeding dari prisma
 export async function SeedingRedis() {
     try {
         const getTenants = await clientRedis.get("tenants") ?? null
@@ -68,7 +69,8 @@ export async function SeedingRedis() {
         // const getModelOpenAi = await clientRedis.get("model_openai") ?? null
 
         if (getTenants == null || JSON.parse(getTenants).length == 0) {
-            await clientRedis.set("tenants", JSON.stringify(tenantData))
+            const tenants = await prisma.tenant.findMany();
+            await clientRedis.set("tenants", JSON.stringify(tenants))
         }
 
         // if (getTenantKeys == null || JSON.parse(getTenantKeys).length == 0) {
@@ -76,11 +78,13 @@ export async function SeedingRedis() {
         // }
 
         if (getIpAllowed == null || JSON.parse(getIpAllowed).length == 0) {
-            await clientRedis.set("ip_allowed", JSON.stringify(ipAllowedData))
+            const ipAllowed = await prisma.ipAllowed.findMany();
+            await clientRedis.set("ip_allowed", JSON.stringify(ipAllowed))
         }
 
         if (getDateInDb == null || JSON.parse(getDateInDb).length == 0) {
-            await clientRedis.set("date_in_db", JSON.stringify(dateInDbData))
+            const dateInDb = await prisma.dateInDb.findMany();
+            await clientRedis.set("date_in_db", JSON.stringify(dateInDb))
         }
 
         // if (getModelOpenAi == null || JSON.parse(getModelOpenAi).length == 0) {

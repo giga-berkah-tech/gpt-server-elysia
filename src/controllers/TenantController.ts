@@ -202,17 +202,17 @@ export const deleteTenantWithTenantKey = async (body: any) => {
         //============= Redis ===================
 
         tenantTemp = tenantTemp.filter((val: any) => val.id != body.tenant_name)
-        tenantKeyTemp = tenantKeyTemp.filter((val: any) => val.tenantName != body.tenant_name)
+        // tenantKeyTemp = tenantKeyTemp.filter((val: any) => val.tenantName != body.tenant_name)
 
         await clientRedis.set(
             REDIS_TENANT,
             JSON.stringify([...tenantTemp]),
         )
 
-        await clientRedis.set(
-            REDIS_TENANT_KEYS,
-            JSON.stringify([...tenantKeyTemp]),
-        )
+        // await clientRedis.set(
+        //     REDIS_TENANT_KEYS,
+        //     JSON.stringify([...tenantKeyTemp]),
+        // )
 
         //============= Postgree ===================
 
@@ -227,9 +227,9 @@ export const deleteTenantWithTenantKey = async (body: any) => {
                 tenantName: body.tenant_name
             }
         })
-
-        fetchTenantKeys()
+        
         fetchTenant()
+        fetchTenantKeys()
 
         return successResponse('Success delete tenant', 200)
     } else {
@@ -386,10 +386,10 @@ export const deleteAllTenant = async () => {
             JSON.stringify([]),
         )
 
-        await clientRedis.set(
-            REDIS_TENANT_KEYS,
-            JSON.stringify([]),
-        )
+        // await clientRedis.set(
+        //     REDIS_TENANT_KEYS,
+        //     JSON.stringify([]),
+        // )
 
         //============= Postgree ===================
 
