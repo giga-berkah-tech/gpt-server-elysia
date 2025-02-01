@@ -5,7 +5,8 @@ export interface Tenant {
     maxConsumptionToken: number,
     totalPromptTokenUsage: number
     totalCompletionTokenUsage: number,
-    status: boolean
+    modelOpenAiId:number,
+    status: boolean,
     // tenantKey:TenantKey
 }
 

@@ -5,10 +5,10 @@ import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
 import { checkConnRedis } from "./services/AuthService";
-import { chatsOpenAi } from "./controllers/OpenAiController";
+import { chatsWithChatGPT } from "./controllers/OpenAiWithChatGptController";
 import fs from 'fs'
-import { chatsOpenRouter } from "./controllers/OpenAiWithOpenRouterController";
-import { checkTenantVerifyUser } from "./controllers/UtilsForOpenAiController";
+import { chatsWithOpenRouter } from "./controllers/OpenAiWithOpenRouterController";
+import { checkTenantVerifyUser, runningModelOpenAi } from "./controllers/UtilsForOpenAiController";
 
 
 export const clientRedis = createClient({
@@ -19,7 +19,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.27')
+app.get('/', () => 'Hello from chatgpt service! v0.0.28')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -60,13 +60,13 @@ app.ws('/ws', {
         return;
       }
 
-        if (! await checkTenantVerifyUser(ws, message)) {
+        if (!await checkTenantVerifyUser(ws, message)) {
           console.log("WS error =>", message)
           ws.send(JSON.stringify({ status: 401, message: "user not valid" }))
           ws.close();
           return;
         };
-        chatsOpenAi(ws,message)
+        runningModelOpenAi(ws, message)
     } catch (error) {
       ws.send(JSON.stringify({ status: 500, message: "Connection Error" }))
       ws.close();

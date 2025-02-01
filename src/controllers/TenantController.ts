@@ -94,6 +94,19 @@ export const createTenant = async (body: any) => {
             return failedResponse('Tenant_key already exists', 409)
         }
 
+        // Check model open ai is exist
+        if (body.model_open_ai_id != undefined) {
+            const tenantModelOpenAi = await prisma.modelOpenAi.findFirst({
+                where: {
+                    id: parseInt(body.model_open_ai_id)
+                }
+            });
+    
+            if (!tenantModelOpenAi) {
+                return failedResponse('Model openAi not found', 404)
+            }
+        }
+
         //============= Redis ===================
         tenantTemp.push({
             id: body.name.replaceAll(' ', '_').toString(),
@@ -102,6 +115,7 @@ export const createTenant = async (body: any) => {
             maxConsumptionToken: body.max_consumption_token == undefined ? 1000000 : parseInt(body.max_consumption_token),
             totalPromptTokenUsage: 0,
             totalCompletionTokenUsage: 0,
+            modelOpenAiId: body.model_open_ai_id == undefined ? 1 : parseInt(body.model_open_ai_id),
             status: body.status ?? false
         })
 
@@ -129,6 +143,7 @@ export const createTenant = async (body: any) => {
                 maxConsumptionToken: body.max_consumption_token == undefined ? 1000000 : parseInt(body.max_consumption_token),
                 totalPromptTokenUsage: 0,
                 totalCompletionTokenUsage: 0,
+                modelOpenAiId: body.model_open_ai_id == undefined ? 1 : parseInt(body.model_open_ai_id),
                 status: body.status ?? false
             }
         })
@@ -246,7 +261,6 @@ export const editTenant = async (body: any, tenantId: string) => {
         return failedResponse('Name tenant, max context & status must not be empty', 422)
     }
 
-
     const getTenants = await clientRedis.get(REDIS_TENANT) ?? null
     const getTenantKeys = tenantKeyData
 
@@ -268,6 +282,19 @@ export const editTenant = async (body: any, tenantId: string) => {
             return failedResponse('Tenant not found', 404)
         }
 
+        // Check model open ai is exist
+        if (body.model_open_ai_id != undefined) {
+            const tenantModelOpenAi = await prisma.modelOpenAi.findFirst({
+                where: {
+                    id: parseInt(body.model_open_ai_id)
+                }
+            });
+    
+            if (!tenantModelOpenAi) {
+                return failedResponse('Model openAi not found', 404)
+            }
+        }
+     
         // if (getTenantKeys.find((val: any) => val.tenantName == tenantId) == null) {
         //     return failedResponse('Tenant key not found', 404)
         // }
@@ -283,6 +310,7 @@ export const editTenant = async (body: any, tenantId: string) => {
                     maxContext: body.max_context == undefined ? val.maxContext : parseInt(body.max_context),
                     maxConsumptionToken: body.max_consumption_token == undefined ? val.maxConsumptionToken : parseInt(body.max_consumption_token),
                     status: body.status == undefined ? val.status : body.status,
+                    modelOpenAiId: body.model_open_ai_id == undefined ? val.modelOpenAiId : parseInt(body.model_open_ai_id) 
                 }
             } else {
                 return val
@@ -322,10 +350,9 @@ export const editTenant = async (body: any, tenantId: string) => {
                 maxContext: body.max_context == undefined ? tenantDataDb?.maxContext : parseInt(body.max_context),
                 maxConsumptionToken: body.max_consumption_token == undefined ? tenantDataDb?.maxConsumptionToken : parseInt(body.max_consumption_token),
                 status: body.status == undefined ? body.status : body.status,
+                modelOpenAiId: body.model_open_ai_id == undefined ? tenantDataDb?.modelOpenAiId : parseInt(body.model_open_ai_id)
             }
         })
-
-        
 
         await prisma.tenantKey.update({
             where: {

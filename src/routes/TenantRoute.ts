@@ -43,6 +43,7 @@ const Routes = new Elysia()
             max_consumption_token: t.Optional(t.String()) ,
             chat_gpt_key: t.String(),
             status: t.Boolean(),
+            model_open_ai_id: t.Optional(t.String()),
         }),
     })
     .put(`/:id`, async (context: Context) => {
@@ -60,6 +61,7 @@ const Routes = new Elysia()
             max_context: t.Optional(t.String()) ,
             max_consumption_token: t.Optional(t.String()),
             chat_gpt_key: t.Optional(t.String()),
+            model_open_ai_id: t.Optional(t.String()),
             status: t.Boolean(),
         }),
     })

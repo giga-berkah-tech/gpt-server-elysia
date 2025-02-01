@@ -9,9 +9,7 @@ import OpenAI from "openai"
 import { tenantKeyData } from "../services/LoadDataService"
 import prisma from "../helpers/prisma_client"
 
-
-
-export const chatsOpenAi = async (ws: any, message: any) => {
+export const chatsWithChatGPT = async (ws: any, message: any) => {
 
     try {
         let chatsTemp = []
@@ -68,7 +66,7 @@ export const chatsOpenAi = async (ws: any, message: any) => {
             {
                 role: 'system',
                 content: `
-                        if user request image,video please give only link but not giving search URL, just give a random url link but not from example.com !!!
+                        Please with good english
        
                     `
             },

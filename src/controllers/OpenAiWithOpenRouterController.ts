@@ -6,7 +6,7 @@ import { tenantKeyData } from "../services/LoadDataService";
 import prisma from "../helpers/prisma_client";
 import { OPEN_ROUTER_API_KEY, OPEN_ROUTER_API_URL } from "../utils/constants";
 
-export const chatsOpenRouter = async (ws: any, message: any) => {
+export const chatsWithOpenRouter = async (ws: any, message: any) => {
 
     try {
         let chatsTemp = [];
@@ -42,7 +42,7 @@ export const chatsOpenRouter = async (ws: any, message: any) => {
             {
                 role: 'system',
                 content: `
-                    Respond with complete words and phrases, avoiding unnecessary splitting of words. Ensure the response is structured properly, without fragmenting words unnaturally.
+                    Please with good english
                 `
             },
             ...getMessageInput.map((val: any) => {
@@ -86,16 +86,16 @@ export const chatsOpenRouter = async (ws: any, message: any) => {
                     buffer = words[words.length - 1];
                 }
     
-                // Send chunks only if there are at least 5 words
-                if (wordBuffer.length >= 5) {
-                    const chunkToSend = wordBuffer.splice(0, 5); // Take the first 5 words
+                // Send chunks only if there are at least 10 words
+                if (wordBuffer.length >= 10) {
+                    const chunkToSend = wordBuffer.splice(0, 10); // Take the first 10 words
                     sendId += 1;
                     const data = {
                         status: 200,
                         uuid: message.uuid,
                         id: sendId,
                         maxContext: tenantData.maxContext,
-                        msg: chunkToSend // Send the chunk of 5 words
+                        msg: chunkToSend.map((word) => " " + word) // Send the chunk of 10 words
                     };
                     ws.send(JSON.stringify(data));
                 }
@@ -113,7 +113,7 @@ export const chatsOpenRouter = async (ws: any, message: any) => {
                 uuid: message.uuid,
                 id: sendId,
                 maxContext: tenantData.maxContext,
-                msg: wordBuffer // Send the remaining words as a single batch
+                msg: wordBuffer.map((word) => " " + word) // Send the remaining words as a single batch
             };
             ws.send(JSON.stringify(data));
         }
@@ -126,7 +126,7 @@ export const chatsOpenRouter = async (ws: any, message: any) => {
                 uuid: message.uuid,
                 id: sendId,
                 maxContext: tenantData.maxContext,
-                msg: [buffer] // Send the remaining content
+                msg: [` ${buffer}`] // Send the remaining content
             };
             ws.send(JSON.stringify(data));
         }

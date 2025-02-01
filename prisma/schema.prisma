@@ -21,9 +21,11 @@ model Tenant {
   totalPromptTokenUsage     Int      @default(0)
   totalCompletionTokenUsage Int      @default(0)
   status                    Boolean  @default(false)
+  modelOpenAi               ModelOpenAi? @relation(fields: [modelOpenAiId],references: [id])
+  modelOpenAiId             Int?
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
-
+ 
   @@map("tenants")
 }
 
@@ -56,4 +58,14 @@ model IpAllowed {
   updatedAt DateTime @updatedAt
 
   @@map("ip_allowed")
+}
+
+model ModelOpenAi {
+  id          Int      @id @default(autoincrement())
+  name  String   @db.VarChar(255)
+  tenants Tenant[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("model_openai")
 }

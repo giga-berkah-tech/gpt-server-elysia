@@ -8,6 +8,9 @@ import { GPTTokens } from "gpt-tokens"
 import OpenAI from "openai"
 import { tenantKeyData } from "../services/LoadDataService"
 import prisma from "../helpers/prisma_client"
+import { chatsWithChatGPT } from "./OpenAiWithChatGptController"
+import { failedResponse, successDataResponse } from "../helpers/response_json"
+import { chatsWithOpenRouter } from "./OpenAiWithOpenRouterController"
 
 const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
     let dateInDb: DateInDb
@@ -155,4 +158,26 @@ export const checkTenantVerifyUser = async (ws: any, message: any) => {
     }
 
     return await verifyWebSocketUser(ws, message.tenant, message.token) === "true"
+}
+
+export const runningModelOpenAi = async (ws: any, message: any) => {
+
+    chatsWithChatGPT(ws, message)
+
+    // const getTenantRedis: any = await clientRedis.get(REDIS_TENANT) ?? null
+
+    // if (JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant) != null) {
+    //     const tenant: Tenant = JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant)
+    //     if (tenant.modelOpenAiId === 1) {
+    //         chatsWithChatGPT(ws, message)
+
+    //     } else {
+    //         chatsWithOpenRouter(ws, message)
+    //     }
+
+    // } else {
+    //     ws.send(JSON.stringify({ status: 404, message: "Tenant not found" }));
+    // }
+
+
 }
