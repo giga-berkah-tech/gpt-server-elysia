@@ -171,7 +171,7 @@ export const deleteTenantWithTenantKey = async (body: any) => {
     let tenantKeyTemp: TenantKeys[] = []
 
 
-    if (body.name == null || body.name == '') {
+    if (body.tenant_name == null || body.tenant_name == '') {
         return failedResponse('Tenant name is required', 422)
     }
 
@@ -191,18 +191,18 @@ export const deleteTenantWithTenantKey = async (body: any) => {
             })
         })
 
-        if (JSON.parse(getTenants).find((val: any) => val.id == body.name) == null) {
+        if (JSON.parse(getTenants).find((val: any) => val.id == body.tenant_name) == null) {
             return failedResponse('Tenant not found', 404)
         }
 
-        if (tenantKeyData.find((val: any) => val.tenantName == body.name) == null) {
+        if (tenantKeyData.find((val: any) => val.tenantName == body.tenant_name) == null) {
             return failedResponse('Tenant key not found', 404)
         }
 
         //============= Redis ===================
 
-        tenantTemp = tenantTemp.filter((val: any) => val.id != body.name)
-        tenantKeyTemp = tenantKeyTemp.filter((val: any) => val.tenantName != body.name)
+        tenantTemp = tenantTemp.filter((val: any) => val.id != body.tenant_name)
+        tenantKeyTemp = tenantKeyTemp.filter((val: any) => val.tenantName != body.tenant_name)
 
         await clientRedis.set(
             REDIS_TENANT,
@@ -218,13 +218,13 @@ export const deleteTenantWithTenantKey = async (body: any) => {
 
         await prisma.tenant.delete({
             where: {
-                id: body.name
+                id: body.tenant_name
             }
         })
 
         await prisma.tenantKey.delete({
             where: {
-                tenantName: body.name
+                tenantName: body.tenant_name
             }
         })
 
