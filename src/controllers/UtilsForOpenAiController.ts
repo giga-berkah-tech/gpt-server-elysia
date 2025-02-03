@@ -162,22 +162,23 @@ export const checkTenantVerifyUser = async (ws: any, message: any) => {
 
 export const runningModelOpenAi = async (ws: any, message: any) => {
 
-    chatsWithChatGPT(ws, message)
+    const getTenantRedis: any = await clientRedis.get(REDIS_TENANT) ?? null
 
-    // const getTenantRedis: any = await clientRedis.get(REDIS_TENANT) ?? null
+    if (JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant) != null) {
+        const tenant: Tenant = JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant)
+        if (tenant.modelOpenAiId != null) {
+            if (tenant.modelOpenAiId === 1) {
+                chatsWithChatGPT(ws, message)
 
-    // if (JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant) != null) {
-    //     const tenant: Tenant = JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant)
-    //     if (tenant.modelOpenAiId === 1) {
-    //         chatsWithChatGPT(ws, message)
-
-    //     } else {
-    //         chatsWithOpenRouter(ws, message)
-    //     }
-
-    // } else {
-    //     ws.send(JSON.stringify({ status: 404, message: "Tenant not found" }));
-    // }
+            } else {
+                chatsWithOpenRouter(ws, message)
+            }
+        } else {
+            ws.send(JSON.stringify({ status: 404, message: "Model in this tenant not found, please set model in this tenant" }));
+        }
+    } else {
+        ws.send(JSON.stringify({ status: 404, message: "Tenant not found" }));
+    }
 
 
 }
