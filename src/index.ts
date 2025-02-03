@@ -1,6 +1,6 @@
 import { Elysia, t, TSchema } from "elysia";
 import { AuthRoutes, DateInDbRoutes, TenantKeyRoutes, TenantRoutes } from "./routes";
-import { AUTH_PREFIX, DATE_IN_DB_PREFIX, TENANT_KEY_PREFIX, TENANT_PREFIX } from "./utils/key_types";
+import { AUTH_PREFIX, DATE_IN_DB_PREFIX, MODEL_OPENAI_PREFIX, TENANT_KEY_PREFIX, TENANT_PREFIX } from "./utils/key_types";
 import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
@@ -9,6 +9,7 @@ import { chatsWithChatGPT } from "./controllers/OpenAiWithChatGptController";
 import fs from 'fs'
 import { chatsWithOpenRouter } from "./controllers/OpenAiWithOpenRouterController";
 import { checkTenantVerifyUser, runningModelOpenAi } from "./controllers/UtilsForOpenAiController";
+import { ModelOpenAiRoutes } from "./routes/ModelOpenAiRoute";
 
 
 export const clientRedis = createClient({
@@ -19,7 +20,7 @@ export const clientRedis = createClient({
 const app = new Elysia()
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.31')
+app.get('/', () => 'Hello from chatgpt service! v0.0.32')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -29,6 +30,7 @@ app.group(`${prefix}/${AUTH_PREFIX}`, (app) => app.use(AuthRoutes))
 app.group(`${prefix}/${TENANT_PREFIX}`, (app) => app.use(TenantRoutes))
 app.group(`${prefix}/${DATE_IN_DB_PREFIX}`, (app) => app.use(DateInDbRoutes))
 app.group(`${prefix}/${TENANT_KEY_PREFIX}`, (app) => app.use(TenantKeyRoutes))
+app.group(`${prefix}/${MODEL_OPENAI_PREFIX}`, (app) => app.use(ModelOpenAiRoutes))
 
 app.get('/download', async ({ params, set }) => {
   const file = await fs.promises.readFile('./resources/list_api.txt', 'utf-8'); 
