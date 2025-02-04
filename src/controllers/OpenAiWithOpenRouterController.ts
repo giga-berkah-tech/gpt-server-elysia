@@ -59,7 +59,7 @@ export const chatsWithOpenRouter = async (ws: any, message: any) => {
         });
     
         const completionOpenAi = await openai.chat.completions.create({
-            model: "deepseek/deepseek-chat",
+            model: "deepseek/deepseek-r1:free",
             stream: true,
             stream_options: {
                 include_usage: true
