@@ -4,7 +4,7 @@ import { clientRedis } from "..";
 import { REDIS_TENANT } from "../utils/key_types";
 import { tenantKeyData } from "../services/LoadDataService";
 import prisma from "../helpers/prisma_client";
-import { OPEN_ROUTER_API_KEY, OPEN_ROUTER_API_URL } from "../utils/constants";
+import { OPEN_ROUTER_API_KEY, OPEN_ROUTER_API_URL, OPEN_ROUTER_MODEL } from "../utils/constants";
 
 export const chatsWithOpenRouter = async (ws: any, message: any) => {
 
@@ -59,7 +59,7 @@ export const chatsWithOpenRouter = async (ws: any, message: any) => {
         });
     
         const completionOpenAi = await openai.chat.completions.create({
-            model: "deepseek/deepseek-r1:free",
+            model: OPEN_ROUTER_MODEL || "deepseek/deepseek-r1:free",
             stream: true,
             stream_options: {
                 include_usage: true
