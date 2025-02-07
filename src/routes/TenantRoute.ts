@@ -89,12 +89,14 @@ const Routes = new Elysia()
         }
         return deleteAllTenant()
     })
-    .get(`/data/:id`, async (context: Context) => {
-        console.log(context.headers.authorization)
+    .get(`/data/:id?`, async (context: Context) => {
         if (!await checkIp(context)) {
             return failedResponse("You are not allowed", 403)
         }
-        return getTenantData(context.params.id)
+        if (context.params.id == null) {
+            return failedResponse("Tenant must not be empty", 200)
+        }
+        return getTenantData(context.params.id ?? '')
     }).onError(({ code, error }: any) => {
         var message = JSON.parse(error.message)
         return failedResponse(message.errors.map((val: any) => val.summary).join(', '), 200)
