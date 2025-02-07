@@ -94,7 +94,7 @@ const Routes = new Elysia()
             return failedResponse("You are not allowed", 403)
         }
         if (context.params.id == null) {
-            return failedResponse("Tenant must not be empty", 200)
+            return failedResponse("Params id must not be empty", 200)
         }
         return getTenantData(context.params.id ?? '')
     }).onError(({ code, error }: any) => {
