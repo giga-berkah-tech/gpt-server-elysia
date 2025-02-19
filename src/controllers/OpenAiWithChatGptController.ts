@@ -88,34 +88,74 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
             stream: true,
             stream_options: {
                 include_usage: true
-            }
+            },
+            tools: [
+              {
+                "type": "function",
+                "function": {
+                  "name": "generate_image",
+                  "description": "Generate an image based on a given prompt",
+                  "parameters": {
+                    "type": "object",
+                    "required": [
+                      "prompt"
+                    ],
+                    "properties": {
+                      "prompt": {
+                        "type": "string",
+                        "description": "Description of the image to be generated but still include the name"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "strict": true
+                }
+              }
+            ],
         });
         let frameSize = 0;
         let frameTemp = [];
         let sendId = 0;
+        let call_gen_image = false;
+        let arg_gen_image = [];
 
         for await (const chunk of openAi) {
             if (chunk.choices.length != 0) {
-                chatsTemp.push({
-                    // role: chunk.choices[0].delta.role,
-                    content: chunk.choices[0].delta.content
-                })
-                frameSize += 1;
-                frameTemp.push(chunk.choices[0].delta.content)
-                if (frameSize == 10) {
-                    sendId += 1;
-                    const data = {
-                        status: 200,
-                        uuid: message.uuid,
-                        id: sendId,
-                        maxContext: tenantData.maxContext,
-                        msg: frameTemp
+                // for now we forcing to use only one tool, only generate image
+                const tools = chunk.choices[0].delta.tool_calls
+                if(tools && tools.length != 0){
+                    const tool = tools[0]
+                    if(tool.function!.name == "generate_image" ||  call_gen_image ){
+                      call_gen_image = true;
+                      const arg = tool.function?.arguments;
+                      arg_gen_image.push(arg);
                     }
-                    ws.send(JSON.stringify(data));
-                    // console.log("=>",JSON.stringify(data))
-                    frameSize = 0;
-                    frameTemp = [];
                 }
+
+                const content = chunk.choices[0].delta.content
+                if (content != null) {
+                  chatsTemp.push({
+                      // role: chunk.choices[0].delta.role,
+                      content: chunk.choices[0].delta.content
+                  })
+                  frameSize += 1;
+                  frameTemp.push(chunk.choices[0].delta.content)
+                  if (frameSize == 10) {
+                      sendId += 1;
+                      const data = {
+                          status: 200,
+                          uuid: message.uuid,
+                          id: sendId,
+                          maxContext: tenantData.maxContext,
+                          msg: frameTemp
+                      }
+                      ws.send(JSON.stringify(data));
+                      // console.log("=>",JSON.stringify(data))
+                      frameSize = 0;
+                      frameTemp = [];
+                  }
+                }
+             
             } else {
                 totalPrompt = chunk.usage?.prompt_tokens ?? 0
                 totalCompletion = chunk.usage?.completion_tokens ?? 0
@@ -133,6 +173,42 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
             }
             ws.send(JSON.stringify(data));
             // console.log("=>",JSON.stringify(data))
+        }
+        
+        // process generate image toolcalls
+        if(call_gen_image){
+          // tell user we generating image
+          sendId += 1;
+          const data = {
+            status: 200,
+            uuid: message.uuid,
+            id: sendId,
+            maxContext: tenantData.maxContext,
+            msg: ['<small>generating image, please wait ....</small>']
+          }
+          ws.send(JSON.stringify(data));
+
+          const arg_gen_image_json = JSON.parse(arg_gen_image.join(""))
+          const image_prompt = arg_gen_image_json.prompt || null;
+          if(image_prompt){
+            const image = await clientOpenAi.images.generate({
+              model: "dall-e-2",
+              prompt: image_prompt,
+              n: 1,
+              size: "1024x1024",
+            });
+            const image_url = image.data[0].url || null;
+            const formatted_image_url = image_url ? `![Generated Image](${image_url})` : null;
+            sendId += 1;
+            const data = {
+              status: 200,
+              uuid: message.uuid,
+              id: sendId,
+              maxContext: tenantData.maxContext,
+              msg: formatted_image_url ? [formatted_image_url] : []
+            }
+            ws.send(JSON.stringify(data));
+          }
         }
 
         if (getTenants != null) {
