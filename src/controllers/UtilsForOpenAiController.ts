@@ -12,6 +12,7 @@ import { chatsWithChatGPT } from "./OpenAiWithChatGptController"
 import { failedResponse, successDataResponse } from "../helpers/response_json"
 import { chatsWithOpenRouter } from "./OpenAiWithOpenRouterController"
 
+///  NOTE_NEED_FIX: FUNGSI INI PERLU RETHINK STRATEGY
 const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
     let dateInDb: DateInDb
     let userTenant: UserTenant
@@ -76,18 +77,26 @@ const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
 
 const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
     try {
-        const response = await axios.get(`${API_URL}/member/memberInfo/getMemberByToken`, {
-            headers: {
-                'Authorization': token
-            }
-        });
-        const getUserTenant = await clientRedis.get(`USER_DATA_${response.data.data.id}`) ?? "-"
-
+        /// NOTE_FIXED: cek redis USER_TOKEN_ buat dapetin id sebelum cek pakai api.
+        let userId = null
+        const getUserByToken = await clientRedis.get(`USER_TOKEN_${token}`)
+        if (getUserByToken) {
+            userId = JSON.parse(getUserByToken).userId
+        } else {
+          const response = await axios.get(`${API_URL}/member/memberInfo/getMemberByToken`, {
+              headers: {'Authorization': token}
+          });
+          userId = response.data.data.id
+        }
+        if (!userId) {
+          throw new Error("userId not found")
+        }
+        const getUserTenant = await clientRedis.get(`USER_DATA_${userId}`) ?? "-"
 
         if (getUserTenant != "-") {
 
             let dataUser = {
-                userId: response.data.data.id,
+                userId: userId,
                 totalCompletionTokenUsage: JSON.parse(getUserTenant).totalCompletionTokenUsage,
                 totalPromptTokenUsage: JSON.parse(getUserTenant).totalPromptTokenUsage,
                 tenant: tenant,
@@ -98,7 +107,7 @@ const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
             })
         } else {
             let dataUser = {
-                userId: response.data.data.id,
+                userId: userId,
                 totalCompletionTokenUsage: 0,
                 totalPromptTokenUsage: 0,
                 tenant: tenant,
@@ -111,19 +120,20 @@ const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
 
         let dataToken = {
             authStatus: true,
-            userId: response.data.data.id
+            userId: userId
         }
 
         await clientRedis.set("USER_TOKEN_" + token, JSON.stringify(dataToken), {
             EX: 60 * 60 * 1
         })
 
-        checkOneMonthResetTokenComsumption(ws, response.data.data.id)
+        checkOneMonthResetTokenComsumption(ws, userId)
 
         return "true"
 
     } catch (error) {
         // clientRedis.set("USER_TOKEN_" + token, "false")
+        //// ADD_NOTE : add to redis and set userid "" so whenever this user id spamming no need call api again
         let dataToken = {
             authStatus: false,
             userId: ""

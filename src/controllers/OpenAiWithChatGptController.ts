@@ -65,9 +65,7 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
         let messagesOpenAi = [
             {
                 role: 'system',
-                content: `
-                        Please with good english
-       
+                content: `you are an assistant that embeds in chat app. Your job to help any user request.
                     `
             },
             ...getMessageInput.map((val: any) => {
