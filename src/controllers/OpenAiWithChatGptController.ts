@@ -2,12 +2,14 @@ import axios from "axios"
 import { clientRedis } from ".."
 import { DateInDb } from "../types/date_in_db"
 import { Tenant, UserTenant } from "../types/tenant"
-import { API_URL, CHAT_GPT_MODEL, IMAGE_GEN_MODEL, IMAGE_GEN_SIZE } from "../utils/constants"
+import { API_URL, CHAT_GPT_MODEL } from "../utils/constants"
 import { REDIS_DATE_IN_DB, REDIS_TENANT } from "../utils/key_types"
 import { GPTTokens } from "gpt-tokens"
 import OpenAI from "openai"
 import { tenantKeyData } from "../services/LoadDataService"
 import prisma from "../helpers/prisma_client"
+import Replicate from "replicate";
+import { generateImageWithDallE, generateImageWithReplicate } from "./ImageGenerator"
 
 export const chatsWithChatGPT = async (ws: any, message: any) => {
 
@@ -103,7 +105,9 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
                     "properties": {
                       "prompt": {
                         "type": "string",
-                        "description": "Description of the image to be generated in english. Include all the object, place and character if it mention any of that"
+                        "description": "Description of the image to be generated in english version, just what user want with very minimum change."
+
+                        // "description": "Description of the image to be generated in english. Include all the object, place and character if it mention any of that"
                       }
                     },
                     "additionalProperties": false
@@ -194,10 +198,8 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
           // generating image
           const image_prompt = JSON.parse(arg_gen_image.join("")).prompt || null;
           if(image_prompt){
-            const image = await clientOpenAi.images.generate({
-              model: IMAGE_GEN_MODEL,prompt: image_prompt,n: 1,size: IMAGE_GEN_SIZE,
-            });
-            const image_url = image.data[0].url || null;
+            // const image_url = await generateImageWithDallE(image_prompt,clientOpenAi)
+            const image_url = await generateImageWithReplicate(image_prompt)
             sendId += 1;
             ws.send(JSON.stringify({status: 200,uuid: message.uuid,id: sendId,maxContext: tenantData.maxContext,msg:"",image: image_url}));
           }

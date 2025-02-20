@@ -15,7 +15,8 @@
     "jsonwebtoken": "^9.0.2",
     "openai": "^4.68.4",
     "prisma": "5.22.0",
-    "redis": "^4.7.0"
+    "redis": "^4.7.0",
+    "replicate": "^1.0.1"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.7",
