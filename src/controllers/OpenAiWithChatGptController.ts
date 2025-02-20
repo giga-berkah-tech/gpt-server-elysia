@@ -2,7 +2,7 @@ import axios from "axios"
 import { clientRedis } from ".."
 import { DateInDb } from "../types/date_in_db"
 import { Tenant, UserTenant } from "../types/tenant"
-import { API_URL, CHAT_GPT_MODEL } from "../utils/constants"
+import { API_URL, CHAT_GPT_MODEL, IMAGE_GEN_MODEL, IMAGE_GEN_SIZE } from "../utils/constants"
 import { REDIS_DATE_IN_DB, REDIS_TENANT } from "../utils/key_types"
 import { GPTTokens } from "gpt-tokens"
 import OpenAI from "openai"
@@ -79,7 +79,7 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
         const clientOpenAi = new OpenAI({
             apiKey: tenantKey?.chatGptKey
         });
-
+        console.log(messagesOpenAi);
         const openAi = await clientOpenAi.chat.completions.create({
             messages: messagesOpenAi,
             model: CHAT_GPT_MODEL!,
@@ -103,7 +103,7 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
                     "properties": {
                       "prompt": {
                         "type": "string",
-                        "description": "Description of the image to be generated but still include the name"
+                        "description": "Description of the image to be generated in english. Include all the object, place and character if it mention any of that"
                       }
                     },
                     "additionalProperties": false
@@ -175,39 +175,31 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
             // console.log("=>",JSON.stringify(data))
         }
         
-        // process generate image toolcalls
+        // GENERETE_IMAGE TOOL CALL
         if(call_gen_image){
-          // tell user we generating image
-          sendId += 1;
-          const data = {
-            status: 200,
-            uuid: message.uuid,
-            id: sendId,
-            maxContext: tenantData.maxContext,
-            msg: ['<small>generating image, please wait ....</small>']
+          // tell user we are starting generating image
+          const lastMessage = messagesOpenAi.at(-1)?.content;
+          let pre_gen_msg = ['generating image, please wait ....']
+          if (lastMessage) {
+            const completion = await clientOpenAi.chat.completions.create({
+              messages: [{role: "system",content: "you assistant, if user ask to generate image, the system will generate image for user, just tell them that we are generating the image, and tell them to wait"},
+                {role:"user", content: lastMessage}], 
+              model: 'gpt-4o-mini'
+            })
+            pre_gen_msg= completion.choices[0].message.content?.split("\n") || pre_gen_msg
           }
-          ws.send(JSON.stringify(data));
+          sendId += 1;
+          ws.send(JSON.stringify({status: 200,uuid: message.uuid, id: sendId,maxContext: tenantData.maxContext, msg: pre_gen_msg}));
 
-          const arg_gen_image_json = JSON.parse(arg_gen_image.join(""))
-          const image_prompt = arg_gen_image_json.prompt || null;
+          // generating image
+          const image_prompt = JSON.parse(arg_gen_image.join("")).prompt || null;
           if(image_prompt){
             const image = await clientOpenAi.images.generate({
-              model: "dall-e-2",
-              prompt: image_prompt,
-              n: 1,
-              size: "1024x1024",
+              model: IMAGE_GEN_MODEL,prompt: image_prompt,n: 1,size: IMAGE_GEN_SIZE,
             });
             const image_url = image.data[0].url || null;
-            const formatted_image_url = image_url ? `![Generated Image](${image_url})` : null;
             sendId += 1;
-            const data = {
-              status: 200,
-              uuid: message.uuid,
-              id: sendId,
-              maxContext: tenantData.maxContext,
-              msg: formatted_image_url ? [formatted_image_url] : []
-            }
-            ws.send(JSON.stringify(data));
+            ws.send(JSON.stringify({status: 200,uuid: message.uuid,id: sendId,maxContext: tenantData.maxContext,msg:"",image: image_url}));
           }
         }
 
