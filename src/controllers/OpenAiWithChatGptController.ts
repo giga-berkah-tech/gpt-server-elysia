@@ -199,7 +199,7 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
           const image_prompt = JSON.parse(arg_gen_image.join("")).prompt || null;
           if(image_prompt){
             // const image_url = await generateImageWithDallE(image_prompt,clientOpenAi)
-            const image_url = await generateImageWithReplicate(image_prompt)
+            const image_url = await generateImageWithReplicate(image_prompt, message)
             sendId += 1;
             ws.send(JSON.stringify({status: 200,uuid: message.uuid,id: sendId,maxContext: tenantData.maxContext,msg:[],image: image_url}));
           }

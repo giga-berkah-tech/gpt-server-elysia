@@ -10,22 +10,22 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Tenant {
-  id                        String   @unique @db.VarChar(255)
-  name                      String?  @db.VarChar(255)
-  maxContext                Int      @default(0)
-  maxConsumptionToken       Int      @default(0)
-  totalPromptTokenUsage     Int      @default(0)
-  totalCompletionTokenUsage Int      @default(0)
-  status                    Boolean  @default(false)
-  modelOpenAi               ModelOpenAi? @relation(fields: [modelOpenAiId],references: [id])
+  id                        String       @unique @db.VarChar(255)
+  name                      String?      @db.VarChar(255)
+  maxContext                Int          @default(0)
+  maxConsumptionToken       Int          @default(0)
+  totalPromptTokenUsage     Int          @default(0)
+  totalCompletionTokenUsage Int          @default(0)
+  status                    Boolean      @default(false)
+  modelOpenAi               ModelOpenAi? @relation(fields: [modelOpenAiId], references: [id])
   modelOpenAiId             Int?
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
- 
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime     @updatedAt
+
   @@map("tenants")
 }
 
@@ -61,11 +61,22 @@ model IpAllowed {
 }
 
 model ModelOpenAi {
-  id          Int      @id @default(autoincrement())
-  name  String   @db.VarChar(255)
-  tenants Tenant[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  tenants   Tenant[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("model_openai")
+}
+
+model ImageResults {
+  id        Int      @id @default(autoincrement())
+  userId    String   @db.VarChar(255)
+  tenant    String   @db.VarChar(255)
+  imageUrl  String   @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("image_results")
 }
