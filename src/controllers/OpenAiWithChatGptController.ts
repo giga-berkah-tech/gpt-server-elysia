@@ -265,3 +265,165 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
 
     }
 }
+
+
+export const chatsWithChatGPTnoTools = async (ws: any, message: any) => {
+
+  try {
+      let chatsTemp = []
+      let tenantTemp: Tenant[] = []
+      let userTenantData: any
+
+      let totalPrompt = 0
+      let totalCompletion = 0
+
+      const getTenants = await clientRedis.get(REDIS_TENANT) ?? "-"
+      const getToken: any = await clientRedis.get(`USER_TOKEN_${message.token}`) ?? "-"
+
+      const tenantData = JSON.parse(getTenants).find((val: any) => val.id == message.tenant)
+      const tenantKey = tenantKeyData.find((val: any) => val.tenantName == message.tenant)
+
+      if (getToken != "-") {
+          const tokenData = JSON.parse(getToken)
+          const getUserTenant = await clientRedis.get(`USER_DATA_${tokenData.userId}`) ?? "-"
+          userTenantData = JSON.parse(getUserTenant)
+      } else {
+          ws.send(JSON.stringify({ status: 401, message: "sorry, user not valid" }));
+      }
+      if ((userTenantData.totalPromptTokenUsage + userTenantData.totalCompletionTokenUsage) > tenantData.maxConsumptionToken) {
+          ws.send(JSON.stringify({ status: 403, message: "You have exceeded the tenant quota consumption" }));
+          ws.close();
+      }
+      const getMessageInput: [] = message.messages
+      let messagesOpenAi = [
+          ...getMessageInput.map((val: any) => {
+              return {
+                  role: val.role,
+                  content: val.content
+              }
+          })
+      ];
+
+      const clientOpenAi = new OpenAI({
+          apiKey: tenantKey?.chatGptKey
+      });
+      console.log(messagesOpenAi);
+      const openAi = await clientOpenAi.chat.completions.create({
+          messages: messagesOpenAi,
+          model: message.model || CHAT_GPT_MODEL!,
+          // max_completion_tokens:  Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxCompletionToken),
+          // Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxInput),
+          stream: true,
+          stream_options: {
+              include_usage: true
+          },
+      });
+      let frameSize = 0;
+      let frameTemp = [];
+      let sendId = 0;
+
+      for await (const chunk of openAi) {
+          if (chunk.choices.length != 0) {
+              const content = chunk.choices[0].delta.content
+              if (content != null) {
+                chatsTemp.push({
+                    // role: chunk.choices[0].delta.role,
+                    content: chunk.choices[0].delta.content
+                })
+                frameSize += 1;
+                frameTemp.push(chunk.choices[0].delta.content)
+                if (frameSize == 10) {
+                    sendId += 1;
+                    const data = {
+                        status: 200,
+                        uuid: message.uuid,
+                        id: sendId,
+                        maxContext: tenantData.maxContext,
+                        msg: frameTemp
+                    }
+                    ws.send(JSON.stringify(data));
+                    // console.log("=>",JSON.stringify(data))
+                    frameSize = 0;
+                    frameTemp = [];
+                }
+              }
+           
+          } else {
+              totalPrompt = chunk.usage?.prompt_tokens ?? 0
+              totalCompletion = chunk.usage?.completion_tokens ?? 0
+          }
+      }
+
+      if (frameTemp.length != 0) {
+          sendId += 1;
+          const data = {
+              status: 200,
+              uuid: message.uuid,
+              id: sendId,
+              maxContext: tenantData.maxContext,
+              msg: frameTemp
+          }
+          ws.send(JSON.stringify(data));
+          // console.log("=>",JSON.stringify(data))
+      }
+
+      if (getTenants != null) {
+          JSON.parse(getTenants).map((val: any) => {
+              tenantTemp.push({
+                  ...val
+              })
+          })
+
+          if (JSON.parse(getTenants).find((val: any) => val.id == message.tenant) == null) {
+              ws.send(JSON.stringify({ status: 404, message: "Tenant not found, please create a new tenant" }));
+              console.log("WS error => Tenant not found, please create a new tenant")
+              return false
+          }
+
+      } else {
+          ws.send(JSON.stringify({ status: 404, message: "Tenant key not found in redis" }));
+          console.log("WS error => Tenant key not found in redis")
+      }
+
+      if (userTenantData) {
+          userTenantData.totalPromptTokenUsage += totalPrompt;
+          userTenantData.totalCompletionTokenUsage += totalCompletion;
+          await clientRedis.set(`USER_DATA_${userTenantData.userId}`, JSON.stringify(userTenantData));
+      }
+
+      tenantTemp = tenantTemp.map((val: any) => {
+          if (val.id == message.tenant) {
+              return {
+                  ...val,
+                  totalPromptTokenUsage: tenantData.totalPromptTokenUsage + totalPrompt,
+                  totalCompletionTokenUsage: tenantData.totalCompletionTokenUsage + totalCompletion
+              }
+          } else {
+              return val
+          }
+      })
+
+
+      await clientRedis.set(
+          REDIS_TENANT,
+          JSON.stringify([...tenantTemp]),
+      )
+
+      //============= Postgree ===================
+      await prisma.tenant.update({
+          where: {
+              id: message.tenant
+          },
+          data: {
+              totalPromptTokenUsage: tenantData.totalPromptTokenUsage + totalPrompt,
+              totalCompletionTokenUsage: tenantData.totalCompletionTokenUsage + totalCompletion
+          }
+      })
+      
+  } catch (error: any) {
+      ws.send(JSON.stringify({ status: error.status, message: error }));
+      console.log("WS error =>", error)
+      ws.close();
+
+  }
+}

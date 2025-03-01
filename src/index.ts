@@ -1,6 +1,6 @@
 import { Elysia, t, TSchema } from "elysia";
-import { AuthRoutes, DateInDbRoutes, TenantKeyRoutes, TenantRoutes } from "./routes";
-import { AUTH_PREFIX, DATE_IN_DB_PREFIX, MODEL_OPENAI_PREFIX, TENANT_KEY_PREFIX, TENANT_PREFIX } from "./utils/key_types";
+import { AuthRoutes, DateInDbRoutes, TenantKeyRoutes, TenantRoutes, TenantModelListRoutes } from "./routes";
+import { AUTH_PREFIX, DATE_IN_DB_PREFIX, MODEL_LIST_PREFIX, MODEL_OPENAI_PREFIX, TENANT_KEY_PREFIX, TENANT_PREFIX } from "./utils/key_types";
 import { ip } from "elysia-ip";
 import { createClient } from "redis";
 import { REDIS_URL } from "./utils/constants";
@@ -31,6 +31,7 @@ app.group(`${prefix}/${TENANT_PREFIX}`, (app) => app.use(TenantRoutes))
 app.group(`${prefix}/${DATE_IN_DB_PREFIX}`, (app) => app.use(DateInDbRoutes))
 app.group(`${prefix}/${TENANT_KEY_PREFIX}`, (app) => app.use(TenantKeyRoutes))
 app.group(`${prefix}/${MODEL_OPENAI_PREFIX}`, (app) => app.use(ModelOpenAiRoutes))
+app.group(`${prefix}/${MODEL_LIST_PREFIX}`, (app) => app.use(TenantModelListRoutes))
 
 app.get('/download', async ({ params, set }) => {
   const file = await fs.promises.readFile('./resources/list_api.txt', 'utf-8'); 

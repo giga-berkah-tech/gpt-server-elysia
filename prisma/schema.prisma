@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,11 +14,11 @@ model Tenant {
   maxConsumptionToken       Int          @default(0)
   totalPromptTokenUsage     Int          @default(0)
   totalCompletionTokenUsage Int          @default(0)
-  status                    Boolean      @default(false)
-  modelOpenAi               ModelOpenAi? @relation(fields: [modelOpenAiId], references: [id])
-  modelOpenAiId             Int?
   createdAt                 DateTime     @default(now())
   updatedAt                 DateTime     @updatedAt
+  status                    Boolean      @default(false)
+  modelOpenAiId             Int?
+  modelOpenAi               ModelOpenAi? @relation(fields: [modelOpenAiId], references: [id])
 
   @@map("tenants")
 }
@@ -62,10 +56,10 @@ model IpAllowed {
 
 model ModelOpenAi {
   id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(255)
-  tenants   Tenant[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  name      String   @db.VarChar(255)
+  tenants   Tenant[]
 
   @@map("model_openai")
 }
@@ -79,4 +73,14 @@ model ImageResults {
   updatedAt DateTime @updatedAt
 
   @@map("image_results")
+}
+
+model TenantModelList {
+  id        Int      @id @default(autoincrement())
+  tenant    String   @unique @db.VarChar(255)
+  models    String[] @db.VarChar(255)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tenant_model_lists")
 }

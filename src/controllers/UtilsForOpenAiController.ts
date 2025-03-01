@@ -8,7 +8,7 @@ import { GPTTokens } from "gpt-tokens"
 import OpenAI from "openai"
 import { tenantKeyData } from "../services/LoadDataService"
 import prisma from "../helpers/prisma_client"
-import { chatsWithChatGPT } from "./OpenAiWithChatGptController"
+import { chatsWithChatGPT, chatsWithChatGPTnoTools } from "./OpenAiWithChatGptController"
 import { failedResponse, successDataResponse } from "../helpers/response_json"
 import { chatsWithOpenRouter } from "./OpenAiWithOpenRouterController"
 
@@ -178,7 +178,12 @@ export const runningModelOpenAi = async (ws: any, message: any) => {
         const tenant: Tenant = JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant)
         if (tenant.modelOpenAiId != null) {
             if (tenant.modelOpenAiId === 1) {
-                chatsWithChatGPT(ws, message)
+                if(message.model && ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'].includes(message.model)) {
+                  chatsWithChatGPT(ws, message)
+                } else {
+                  chatsWithChatGPTnoTools(ws, message)
+                }
+                
 
             } else {
                 chatsWithOpenRouter(ws, message)
