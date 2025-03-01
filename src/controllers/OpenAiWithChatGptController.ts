@@ -84,7 +84,7 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
         console.log(messagesOpenAi);
         const openAi = await clientOpenAi.chat.completions.create({
             messages: messagesOpenAi,
-            model: CHAT_GPT_MODEL!,
+            model: message.model || CHAT_GPT_MODEL!,
             // max_completion_tokens:  Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxCompletionToken),
             // Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxInput),
             stream: true,
