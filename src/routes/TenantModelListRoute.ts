@@ -2,8 +2,15 @@ import Elysia, { Context, t } from "elysia";
 import { checkValidToken, tokenNotValidMsg} from "../services/AuthService";
 import { failedResponse } from "../helpers/response_json";
 import { getModelListByTenant, createTenantModelList } from "../controllers/TenantModelListController";
+import { cors } from '@elysiajs/cors';
 
 const Routes = new Elysia()
+    .use(cors({
+        origin: ['*'],
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
+    }))
     .get(`/:id`, async (context: Context) => {
         const tenant = context.params.id as string;
         return getModelListByTenant(tenant);

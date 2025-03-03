@@ -10,7 +10,7 @@ import fs from 'fs'
 import { chatsWithOpenRouter } from "./controllers/OpenAiWithOpenRouterController";
 import { checkTenantVerifyUser, runningModelOpenAi } from "./controllers/UtilsForOpenAiController";
 import { ModelOpenAiRoutes } from "./routes/ModelOpenAiRoute";
-
+import { cors } from '@elysiajs/cors'
 
 export const clientRedis = createClient({
   url: REDIS_URL,
@@ -18,6 +18,15 @@ export const clientRedis = createClient({
 })
 
 const app = new Elysia()
+// Add CORS support
+// .use(cors({
+//   origin: ['*'],  // Allow the specific origin and any other for development
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   exposeHeaders: ['Content-Length'],
+//   credentials: true,
+//   maxAge: 86400
+// }))
 
 //Home page
 app.get('/', () => 'Hello from chatgpt service! v0.0.36')
