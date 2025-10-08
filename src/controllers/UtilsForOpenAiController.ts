@@ -82,14 +82,20 @@ const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
         const getUserByToken = await clientRedis.get(`USER_TOKEN_${token}`)
         if (getUserByToken) {
             userId = JSON.parse(getUserByToken).userId
+            if (userId == "" || userId == null) {
+                const response = await axios.get(`${API_URL}/member/memberInfo/getMemberByToken`, {
+                    headers: { 'Authorization': token }
+                });
+                userId = response.data.data.id
+            }
         } else {
-          const response = await axios.get(`${API_URL}/member/memberInfo/getMemberByToken`, {
-              headers: {'Authorization': token}
-          });
-          userId = response.data.data.id
+            const response = await axios.get(`${API_URL}/member/memberInfo/getMemberByToken`, {
+                headers: { 'Authorization': token }
+            });
+            userId = response.data.data.id
         }
         if (!userId) {
-          throw new Error("userId not found")
+            throw new Error("userId not found")
         }
         const getUserTenant = await clientRedis.get(`USER_DATA_${userId}`) ?? "-"
 
@@ -132,6 +138,7 @@ const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
         return "true"
 
     } catch (error) {
+        // console.log("HEHEHE",error)
         // clientRedis.set("USER_TOKEN_" + token, "false")
         //// ADD_NOTE : add to redis and set userid "" so whenever this user id spamming no need call api again
         let dataToken = {
@@ -178,12 +185,12 @@ export const runningModelOpenAi = async (ws: any, message: any) => {
         const tenant: Tenant = JSON.parse(getTenantRedis).find((val: any) => val.id == message.tenant)
         if (tenant.modelOpenAiId != null) {
             if (tenant.modelOpenAiId === 1) {
-                if(message.model && ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'].includes(message.model)) {
-                  chatsWithChatGPT(ws, message)
+                if (message.model && ['gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'].includes(message.model)) {
+                    chatsWithChatGPT(ws, message)
                 } else {
-                  chatsWithChatGPTnoTools(ws, message)
+                    chatsWithChatGPTnoTools(ws, message)
                 }
-                
+
 
             } else {
                 chatsWithOpenRouter(ws, message)

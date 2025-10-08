@@ -29,7 +29,7 @@ const app = new Elysia()
 // }))
 
 //Home page
-app.get('/', () => 'Hello from chatgpt service! v0.0.36')
+app.get('/', () => 'Hello from chatgpt service! v0.0.37')
 // app.get('/', () => 'Hello from chatgpt service DEV! v0.0.2')
 
 //Api Routes
@@ -43,11 +43,11 @@ app.group(`${prefix}/${MODEL_OPENAI_PREFIX}`, (app) => app.use(ModelOpenAiRoutes
 app.group(`${prefix}/${MODEL_LIST_PREFIX}`, (app) => app.use(TenantModelListRoutes))
 
 app.get('/download', async ({ params, set }) => {
-  const file = await fs.promises.readFile('./resources/list_api.txt', 'utf-8'); 
+  const file = await fs.promises.readFile('./resources/list_api.txt', 'utf-8');
     return new Response(file, {
       headers: {
         'Content-Type': 'text/plain', // Adjust based on your file type
-        'Content-Disposition': 'attachment; filename="list_api.txt"', 
+        'Content-Disposition': 'attachment; filename="list_api.txt"',
       },
     });
 })
@@ -63,7 +63,7 @@ app.ws('/ws', {
   // }),
   open: (ws) => {
     console.log("WS => Client connected");
-  }, 
+  },
   message: async(ws,message:any) => {
     try {
       if (!message || !message.token || !message.tenant || !message.messages  || !message.uuid) {
