@@ -94,9 +94,9 @@ const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
             });
             userId = response.data.data.id
         }
-        if (!userId) {
-            throw new Error("userId not found")
-        }
+        // if (!userId) {
+        //     throw new Error("userId not found")
+        // }
         const getUserTenant = await clientRedis.get(`USER_DATA_${userId}`) ?? "-"
 
         if (getUserTenant != "-") {
@@ -138,7 +138,7 @@ const verifyWebSocketUser = async (ws: any, tenant: string, token: string) => {
         return "true"
 
     } catch (error) {
-        // console.log("HEHEHE",error)
+        console.log("ERRORRR VERIFY =>",error)
         // clientRedis.set("USER_TOKEN_" + token, "false")
         //// ADD_NOTE : add to redis and set userid "" so whenever this user id spamming no need call api again
         let dataToken = {
