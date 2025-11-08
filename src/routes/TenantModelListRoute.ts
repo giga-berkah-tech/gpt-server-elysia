@@ -16,15 +16,15 @@ const Routes = new Elysia()
         return getModelListByTenant(tenant);
     })
     .post(`/`, async (context: Context) => {
-        if (!checkValidToken(context)) {
-          return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
-        }
+        // if (!checkValidToken(context)) {
+        //   return failedResponse(`Token not valid => ${tokenNotValidMsg}`, 401)
+        // }
         const { tenant, models } = context.body as { tenant: string, models: string[] };
-        
+
         if (!tenant || !models || !Array.isArray(models)) {
             return failedResponse("Tenant and models array are required", 400);
         }
-        
+
         return createTenantModelList(tenant, models);
     }, {
         body: t.Object({
