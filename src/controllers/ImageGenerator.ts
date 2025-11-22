@@ -3,14 +3,18 @@ import {
   IMAGE_DALLE_GEN_MODEL,
   IMAGE_DALLE_GEN_SIZE,
   REPLICATE_API_TOKEN,
-} from "../utils/constants";
-import Replicate from "replicate";
-import axios from "axios";
-import * as https from "https";
-import FormData from "form-data";
-import sharp from "sharp";
-import prisma from "../helpers/prisma_client";
-import { clientRedis } from "..";
+  GEMINI_API_KEY,
+} from '../utils/constants';
+import Replicate from 'replicate';
+import axios from 'axios';
+import * as https from 'https';
+import FormData from 'form-data';
+import sharp from 'sharp';
+import prisma from '../helpers/prisma_client';
+import { clientRedis } from '..';
+import { GoogleGenAI } from '@google/genai';
+import mime from 'mime';
+import fs from 'fs';
 
 /**
  * Generates an image using DALL·E from OpenAI based on the provided prompt.
@@ -38,25 +42,145 @@ export const generateImageWithDallE = async (
  * @param image_prompt - The prompt to generate the image.
  * @returns A promise that resolves to the output of the generated image.
  */
+
+// export async function generateWithGemini(message: string) {
+//   const ai = new GoogleGenAI({
+//     apiKey: 'AIzaSyBrXWD5Ue_TKEI9Mq1_07PBw8G9cMOXQyY',
+//     vertexai: true,
+//   });
+//   const tools = [
+//     {
+//       googleSearch: {},
+//     },
+//   ];
+//   const config = {
+//     responseModalities: ['IMAGE', 'TEXT'],
+//     imageConfig: {
+//       imageSize: '1K',
+//     },
+//   };
+//   const model = 'gemini-2.5-flash-image';
+//   const contents = [
+//     {
+//       role: 'user',
+//       parts: [
+//         {
+//           text: message,
+//         },
+//       ],
+//     },
+//   ];
+
+//   const response = await ai.models.generateContentStream({
+//     model,
+//     config,
+//     contents,
+//   });
+//   let fileIndex = 0;
+//   for await (const chunk of response) {
+//     if (
+//       !chunk.candidates ||
+//       !chunk.candidates[0].content ||
+//       !chunk.candidates[0].content.parts
+//     ) {
+//       continue;
+//     }
+//     if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
+//       const fileName = `ENTER_FILE_NAME_${fileIndex++}`;
+//       const inlineData = chunk.candidates[0].content.parts[0].inlineData;
+//       const fileExtension = mime.getExtension(inlineData.mimeType || '');
+//       const buffer = Buffer.from(inlineData.data || '', 'base64');
+//       saveBinaryFile(`${fileName}.${fileExtension}`, buffer);
+//     } else {
+//       console.log(chunk.text);
+//     }
+//   }
+// }
+
+export async function generateImageWithGemini(prompt: string, message: any) {
+  const ai = new GoogleGenAI({
+    apiKey: GEMINI_API_KEY,
+  });
+
+  const response = await ai.models.generateImages({
+    model: 'models/imagen-4.0-generate-001',
+    prompt,
+    config: {
+      numberOfImages: 1,
+      outputMimeType: 'image/jpeg',
+      aspectRatio: '1:1',
+      imageSize: '1K',
+    },
+  });
+  if (!response?.generatedImages) {
+    console.error('No images generated.');
+    return;
+  }
+
+  if (response.generatedImages.length !== 1) {
+    console.error(
+      'Number of images generated does not match the requested number.'
+    );
+  }
+
+  for (let i = 0; i < response.generatedImages.length; i++) {
+    if (!response.generatedImages?.[i]?.image?.imageBytes) {
+      continue;
+    }
+
+    const inlineData = response?.generatedImages?.[i]?.image?.imageBytes;
+    const buffer = Buffer.from(inlineData || '', 'base64');
+
+    const uploadUrl = `${API_URL}/sso/im/upload/v1?fileType=picture`;
+    const convertedImageBuffer = await convertWebpToPng(buffer);
+    const uploadResponse = await uploadImage(
+      uploadUrl,
+      convertedImageBuffer,
+      message
+    );
+    let userTenantData: any;
+
+    const getToken: any =
+      (await clientRedis.get(`USER_TOKEN_${message.token}`)) ?? '-';
+
+    if (getToken != '-') {
+      const tokenData = JSON.parse(getToken);
+      const getUserTenant =
+        (await clientRedis.get(`USER_DATA_${tokenData.userId}`)) ?? '-';
+      userTenantData = JSON.parse(getUserTenant);
+    } else {
+      throw new Error('Token not found');
+    }
+
+    await prisma.imageResults.create({
+      data: {
+        userId: userTenantData.userId,
+        tenant: userTenantData.tenant,
+        imageUrl: uploadResponse,
+      },
+    });
+
+    return uploadResponse;
+  }
+}
+
 export async function generateImageWithReplicate(prompt: string, message: any) {
   const replicate = new Replicate({ auth: REPLICATE_API_TOKEN });
-  const model = "black-forest-labs/flux-schnell";
+  const model = 'black-forest-labs/flux-schnell';
   const output = await replicate.run(model, {
     input: {
       prompt,
       go_fast: true,
-      megapixels: "1",
+      megapixels: '1',
       num_outputs: 1,
-      aspect_ratio: "1:1",
-      output_format: "webp",
+      aspect_ratio: '1:1',
+      output_format: 'webp',
       output_quality: 80,
       num_inference_steps: 4,
     },
   });
   // Some image models return an array of output files, others just a single file.
-  const imageUrl = Array.isArray(output) ? output[0].url() : "";
-
-  console.log({ imageUrl });
+  const imageUrl = Array.isArray(output) ? output[0].url() : '';
 
   if (imageUrl) {
     const imageBuffer = await downloadImage(imageUrl);
@@ -68,18 +192,18 @@ export async function generateImageWithReplicate(prompt: string, message: any) {
       message
     );
 
-    let userTenantData: any
+    let userTenantData: any;
 
     const getToken: any =
-      (await clientRedis.get(`USER_TOKEN_${message.token}`)) ?? "-";
+      (await clientRedis.get(`USER_TOKEN_${message.token}`)) ?? '-';
 
-    if (getToken != "-") {
+    if (getToken != '-') {
       const tokenData = JSON.parse(getToken);
       const getUserTenant =
-        (await clientRedis.get(`USER_DATA_${tokenData.userId}`)) ?? "-";
+        (await clientRedis.get(`USER_DATA_${tokenData.userId}`)) ?? '-';
       userTenantData = JSON.parse(getUserTenant);
     } else {
-      throw new Error("Token not found");
+      throw new Error('Token not found');
     }
 
     await prisma.imageResults.create({
@@ -92,7 +216,7 @@ export async function generateImageWithReplicate(prompt: string, message: any) {
 
     return uploadResponse;
   } else {
-    throw new Error("Failed to generate image URL");
+    throw new Error('Failed to generate image URL');
   }
 }
 
@@ -101,17 +225,17 @@ async function downloadImage(url: string): Promise<Buffer> {
     const request = https.get(url, (response) => {
       const data: Uint8Array[] = [];
 
-      response.on("data", (chunk: Uint8Array) => {
+      response.on('data', (chunk: Uint8Array) => {
         data.push(chunk);
       });
 
-      response.on("end", () => {
+      response.on('end', () => {
         const buffer = Buffer.concat(data);
         resolve(buffer);
       });
     });
 
-    request.on("error", (err) => {
+    request.on('error', (err) => {
       reject(err);
     });
   });
@@ -120,11 +244,11 @@ async function downloadImage(url: string): Promise<Buffer> {
 async function convertWebpToPng(imageBuffer: Buffer): Promise<Buffer> {
   try {
     const pngBuffer = await sharp(imageBuffer)
-      .toFormat("png") // Convert to PNG format
+      .toFormat('png') // Convert to PNG format
       .toBuffer(); // Get the resulting buffer
     return pngBuffer;
   } catch (error) {
-    throw new Error("Error converting image to PNG: " + error);
+    throw new Error('Error converting image to PNG: ' + error);
   }
 }
 
@@ -135,16 +259,16 @@ async function uploadImage(
 ): Promise<any> {
   try {
     const formData = new FormData();
-    formData.append("file", imageBuffer, {
-      filename: "generated_image.png",
-      contentType: "image/png",
+    formData.append('file', imageBuffer, {
+      filename: 'generated_image.jpeg',
+      contentType: 'image/jpeg',
     });
 
     const response = await axios.post(uploadUrl, formData, {
       headers: {
         ...formData.getHeaders(),
         Authorization: message.token,
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     });
 
@@ -152,10 +276,10 @@ async function uploadImage(
       throw new Error(`Failed to upload image: ${response.statusText}`);
     }
 
-    console.log("Upload Response:", response.data);
+    console.log('Upload Response:', response.data);
     return response.data.data.filePath;
   } catch (error) {
-    console.error("Failed to upload image:");
+    console.error('Failed to upload image:');
     throw error;
   }
 }

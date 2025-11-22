@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@elysiajs/cors": "^1.2.0",
+    "@google/genai": "^1.30.0",
     "@prisma/client": "5.13.0",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
@@ -15,7 +16,8 @@
     "form-data": "^4.0.2",
     "gpt-tokens": "^1.3.12",
     "jsonwebtoken": "^9.0.2",
-    "openai": "^4.68.4",
+    "mime": "^4.1.0",
+    "openai": "^6.9.1",
     "prisma": "5.22.0",
     "redis": "^4.7.0",
     "replicate": "^1.0.1",
