@@ -43,60 +43,6 @@ export const generateImageWithDallE = async (
  * @returns A promise that resolves to the output of the generated image.
  */
 
-// export async function generateWithGemini(message: string) {
-//   const ai = new GoogleGenAI({
-//     apiKey: 'AIzaSyBrXWD5Ue_TKEI9Mq1_07PBw8G9cMOXQyY',
-//     vertexai: true,
-//   });
-//   const tools = [
-//     {
-//       googleSearch: {},
-//     },
-//   ];
-//   const config = {
-//     responseModalities: ['IMAGE', 'TEXT'],
-//     imageConfig: {
-//       imageSize: '1K',
-//     },
-//   };
-//   const model = 'gemini-2.5-flash-image';
-//   const contents = [
-//     {
-//       role: 'user',
-//       parts: [
-//         {
-//           text: message,
-//         },
-//       ],
-//     },
-//   ];
-
-//   const response = await ai.models.generateContentStream({
-//     model,
-//     config,
-//     contents,
-//   });
-//   let fileIndex = 0;
-//   for await (const chunk of response) {
-//     if (
-//       !chunk.candidates ||
-//       !chunk.candidates[0].content ||
-//       !chunk.candidates[0].content.parts
-//     ) {
-//       continue;
-//     }
-//     if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-//       const fileName = `ENTER_FILE_NAME_${fileIndex++}`;
-//       const inlineData = chunk.candidates[0].content.parts[0].inlineData;
-//       const fileExtension = mime.getExtension(inlineData.mimeType || '');
-//       const buffer = Buffer.from(inlineData.data || '', 'base64');
-//       saveBinaryFile(`${fileName}.${fileExtension}`, buffer);
-//     } else {
-//       console.log(chunk.text);
-//     }
-//   }
-// }
-
 export async function generateImageWithGemini(prompt: string, message: any) {
   const ai = new GoogleGenAI({
     apiKey: GEMINI_API_KEY,
