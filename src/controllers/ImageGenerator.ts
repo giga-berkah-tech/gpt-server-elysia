@@ -44,6 +44,7 @@ export const generateImageWithDallE = async (
  */
 
 export async function generateImageWithGemini(prompt: string, message: any) {
+  //generate image with gemini genimage
   const ai = new GoogleGenAI({
     apiKey: GEMINI_API_KEY,
   });
