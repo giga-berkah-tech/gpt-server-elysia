@@ -4,6 +4,7 @@ import {
   IMAGE_DALLE_GEN_SIZE,
   REPLICATE_API_TOKEN,
   GEMINI_API_KEY,
+  NEW_IMAGE_BASE_URI,
 } from '../utils/constants';
 import Replicate from 'replicate';
 import axios from 'axios';
@@ -224,7 +225,21 @@ async function uploadImage(
     }
 
     console.log('Upload Response:', response.data);
-    return response.data.data.filePath;
+    //  filePath: "https://imagelc106.tikgetchat.com/wmsmobile/324d610e-6203-4b70-bf5b-2a8d3a8cf13f.JPEG",
+    //     thumbnail: "wmsmobile/324d610e-6203-4b70-bf5b-2a8d3a8cf13f_.jpeg",
+    //     fileType: "picture",
+    //     fileName: "generated_image.jpeg",
+    //     newFileName: "324d610e-6203-4b70-bf5b-2a8d3a8cf13f",
+    //     fileSuffix: "JPEG",
+    //     fileWidth: 0,
+    //     fileHeight: 0,
+    //     thumbnailWidth: 205,
+    //     thumbnailHeight: 205,
+    const imageUri =
+      `${NEW_IMAGE_BASE_URI}/${response.data.data.newFileName}.JPEG` ||
+      response.data.data.filePath;
+    console.log(imageUri);
+    return imageUri;
   } catch (error) {
     console.error('Failed to upload image:');
     throw error;

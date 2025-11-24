@@ -18,6 +18,9 @@ export const OPEN_ROUTER_API_URL = process.env.OPEN_ROUTER_API_URL;
 export const OPEN_ROUTER_API_KEY = process.env.OPEN_ROUTER_API_KEY;
 export const OPEN_ROUTER_MODEL = process.env.OPEN_ROUTER_MODEL;
 
+export const ORIGIN_IMAGE_BASE_URI = process.env.ORIGIN_IMAGE_BASE_URI || null;
+export const NEW_IMAGE_BASE_URI = process.env.NEW_IMAGE_BASE_URI || null;
+
 export const IMAGE_DALLE_GEN_MODEL = process.env.IMAGE_DALLE_GEN_MODEL;
 export const IMAGE_DALLE_GEN_SIZE = process.env.IMAGE_DALLE_GEN_SIZE as
   | '1024x1024'
