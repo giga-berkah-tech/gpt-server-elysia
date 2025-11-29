@@ -15,7 +15,8 @@ import {
   generateImageWithGemini,
 } from './ImageGenerator';
 
-export const chatsWithChatGPT = async (ws: any, message: any) => {
+import { messageWSType, messagesType } from '../types/messages';
+export const chatsWithChatGPT = async (ws: any, message: messageWSType) => {
   try {
     let chatsTemp = [];
     let tenantTemp: Tenant[] = [];
@@ -61,7 +62,7 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
     }
 
     //Get messages from client
-    const getMessageInput: [] = message.messages;
+    const getMessageInput: messagesType[] = message.messages;
 
     //Get length token
     // const usageInfo = new GPTTokens({
@@ -102,9 +103,10 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
       apiKey: tenantKey?.chatGptKey,
     });
     console.log(messagesOpenAi);
+    console.log(fakerModelOpenAi(message.model), 'model');
     const openAi = await clientOpenAi.chat.completions.create({
       messages: messagesOpenAi,
-      model: message.model || CHAT_GPT_MODEL!,
+      model: fakerModelOpenAi(message.model) || CHAT_GPT_MODEL!,
       // max_completion_tokens:  Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxCompletionToken),
       // Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxInput),
       stream: true,
@@ -319,7 +321,18 @@ export const chatsWithChatGPT = async (ws: any, message: any) => {
   }
 };
 
-export const chatsWithChatGPTnoTools = async (ws: any, message: any) => {
+const fakerModelOpenAi = (model: string) => {
+  if (model == 'gpt-5') {
+    return 'gpt-5-mini';
+  } else if (model == 'gpt-4.1') {
+    return 'gpt-4.1-mini';
+  } else return model;
+};
+
+export const chatsWithChatGPTnoTools = async (
+  ws: any,
+  message: messageWSType
+) => {
   try {
     let chatsTemp = [];
     let tenantTemp: Tenant[] = [];
@@ -362,7 +375,7 @@ export const chatsWithChatGPTnoTools = async (ws: any, message: any) => {
       );
       ws.close();
     }
-    const getMessageInput: [] = message.messages;
+    const getMessageInput: messagesType[] = message.messages;
     let messagesOpenAi = [
       ...getMessageInput.map((val: any) => {
         return {
@@ -375,10 +388,11 @@ export const chatsWithChatGPTnoTools = async (ws: any, message: any) => {
     const clientOpenAi = new OpenAI({
       apiKey: tenantKey?.chatGptKey,
     });
+    console.log(fakerModelOpenAi(message.model), 'model');
     console.log(messagesOpenAi);
     const openAi = await clientOpenAi.chat.completions.create({
       messages: messagesOpenAi,
-      model: message.model || CHAT_GPT_MODEL!,
+      model: fakerModelOpenAi(message.model) || CHAT_GPT_MODEL!,
       // max_completion_tokens:  Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxCompletionToken),
       // Number(JSON.parse(getTenants).find((val: any) => val.id == message.tenant).maxInput),
       stream: true,

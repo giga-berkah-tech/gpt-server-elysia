@@ -14,6 +14,7 @@ import {
 } from './OpenAiWithChatGptController';
 import { failedResponse, successDataResponse } from '../helpers/response_json';
 import { chatsWithOpenRouter } from './OpenAiWithOpenRouterController';
+import { messageWSType } from '../types/messages';
 
 ///  NOTE_NEED_FIX: FUNGSI INI PERLU RETHINK STRATEGY
 const checkOneMonthResetTokenComsumption = async (ws: any, userId: string) => {
@@ -209,7 +210,7 @@ export const checkTenantVerifyUser = async (ws: any, message: any) => {
   );
 };
 
-export const runningModelOpenAi = async (ws: any, message: any) => {
+export const runningModelOpenAi = async (ws: any, message: messageWSType) => {
   const getTenantRedis: any = (await clientRedis.get(REDIS_TENANT)) ?? null;
 
   if (
@@ -223,9 +224,14 @@ export const runningModelOpenAi = async (ws: any, message: any) => {
       if (tenant.modelOpenAiId === 1) {
         if (
           message.model &&
-          ['gpt-5-mini', 'gpt-4o-mini', 'gpt-4o', 'gpt-3.5-turbo'].includes(
-            message.model
-          )
+          [
+            'gpt-5',
+            'gpt-5-nano',
+            'gpt-4.1',
+            'gpt-4o-mini',
+            'gpt-4o',
+            'gpt-3.5-turbo',
+          ].includes(message.model)
         ) {
           // chatsWithChatGPT(ws, message);
           chatsWithChatGPT(ws, message);
