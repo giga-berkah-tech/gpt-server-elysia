@@ -84,3 +84,10 @@ model TenantModelList {
 
   @@map("tenant_model_lists")
 }
+
+model TenantScaledModel{
+  id Int @id @default(autoincrement())
+  model String @unique @db.VarChar(255)
+  scale Int 
+  @@map("scale_price")
+}
