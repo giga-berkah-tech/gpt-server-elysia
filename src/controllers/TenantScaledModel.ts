@@ -1,5 +1,40 @@
 import prisma from '../helpers/prisma_client';
 import { failedResponse, successDataResponse } from '../helpers/response_json';
+import { clientRedis } from '..';
+
+interface ScalePrice {
+  id: number;
+  model: string;
+  scale: number;
+}
+
+const REDIS_KEY = 'scale_price';
+
+const createOrUpdateRedis = async (
+  mode: 'create' | 'update',
+  data: ScalePrice
+) => {
+  const raw = await clientRedis.get(REDIS_KEY);
+  const parsed: ScalePrice[] = raw ? JSON.parse(raw) : [];
+  if (mode === 'create') {
+    const created: ScalePrice[] = [...parsed, data];
+    return await clientRedis.set(REDIS_KEY, JSON.stringify(created));
+  }
+
+  const filtered: ScalePrice[] = parsed.filter(
+    (item) => item.model !== data.model
+  );
+
+  const updated: ScalePrice[] = [...filtered, data];
+
+  await clientRedis.set(REDIS_KEY, JSON.stringify(updated));
+};
+
+export const getTenantModelScaleRedis = async () => {
+  const redisValue = await clientRedis.get(REDIS_KEY);
+  const redisResponse = successDataResponse(JSON.parse(redisValue || '[]'));
+  return redisValue ? redisResponse : await getTenantModelScale();
+};
 
 export const getTenantModelScale = async () => {
   const tenantModelScaleList = await prisma.tenantScaledModel.findMany();
@@ -30,11 +65,13 @@ export const createTenantModelScale = async (model: string, scale: number) => {
         where: { model },
         data: { model, scale },
       });
+      await createOrUpdateRedis('update', tenantScaledModel);
       return successDataResponse(tenantScaledModel);
     }
     const tenantScaledModel = await prisma.tenantScaledModel.create({
       data: { model, scale },
     });
+    await createOrUpdateRedis('create', tenantScaledModel);
     return successDataResponse(tenantScaledModel);
   } catch (error) {
     return failedResponse(`Error creating tenant model scale: ${error}`, 500);

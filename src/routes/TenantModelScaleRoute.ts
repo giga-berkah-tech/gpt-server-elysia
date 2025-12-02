@@ -4,6 +4,7 @@ import {
   createTenantModelScale,
   getTenantModelScaleDetail,
   deleteTenantModelScale,
+  getTenantModelScaleRedis,
 } from '../controllers/TenantScaledModel';
 import { checkIp } from '../controllers/AuthController';
 import { failedResponse } from '../helpers/response_json';
@@ -19,7 +20,7 @@ const Routes = new Elysia()
     if (!(await checkIp(context))) {
       return failedResponse('You are not allowed', 403);
     }
-    return getTenantModelScale();
+    return getTenantModelScaleRedis();
   })
   .get(`/:model`, async (context: Context) => {
     const params = context.params.model as string;
