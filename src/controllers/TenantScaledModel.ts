@@ -36,7 +36,7 @@ export const getTenantModelScaleRedis = async () => {
   return redisValue ? redisResponse : await getTenantModelScale();
 };
 
-export const getTenantModelScale = async () => {
+export const getTenantModelScale = async (): Promise<any> => {
   const tenantModelScaleList = await prisma.tenantScaledModel.findMany();
   if (tenantModelScaleList.length > 0) {
     return successDataResponse(tenantModelScaleList);

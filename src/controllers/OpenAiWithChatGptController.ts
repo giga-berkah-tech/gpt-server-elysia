@@ -14,7 +14,7 @@ import {
   generateImageWithReplicate,
   generateImageWithGemini,
 } from './ImageGenerator';
-
+import { getTenantModelScale } from './TenantScaledModel';
 import { messageWSType, messagesType } from '../types/messages';
 export const chatsWithChatGPT = async (ws: any, message: messageWSType) => {
   try {
@@ -143,8 +143,20 @@ export const chatsWithChatGPT = async (ws: any, message: messageWSType) => {
     let sendId = 0;
     let call_gen_image = false;
     let arg_gen_image = [];
+    const tenant_model = await getTenantModelScale();
+    const filter_tenant: { id: number; model: string; scale: number } | null =
+      tenant_model.data.find(
+        (item: { id: number; model: string; scale: number }) =>
+          item.model == message.model
+      );
+    let prompt_tokens = 0;
+    let completion_tokens = 0;
+    let cached_tokens = 0;
 
     for await (const chunk of openAi) {
+      prompt_tokens = chunk.usage?.prompt_tokens ?? 0;
+      completion_tokens = chunk.usage?.completion_tokens ?? 0;
+      cached_tokens = chunk.usage?.prompt_tokens_details?.cached_tokens ?? 0;
       if (chunk.choices.length != 0) {
         // for now we forcing to use only one tool, only generate image
         const tools = chunk.choices[0].delta.tool_calls;
@@ -181,8 +193,17 @@ export const chatsWithChatGPT = async (ws: any, message: messageWSType) => {
           }
         }
       } else {
+        // totalPrompt = calculate_prompt_token;
+        // totalCompletion = completion_tokens;
+
         totalPrompt = chunk.usage?.prompt_tokens ?? 0;
         totalCompletion = chunk.usage?.completion_tokens ?? 0;
+
+        console.log(chunk, 'raw');
+
+        // console.log(filter_tenant, 'filtered');
+
+        // console.log(calculate_prompt_token, 'total');
       }
     }
 
@@ -280,7 +301,13 @@ export const chatsWithChatGPT = async (ws: any, message: messageWSType) => {
     }
 
     if (userTenantData) {
-      userTenantData.totalPromptTokenUsage += totalPrompt;
+      const modelScale = filter_tenant?.scale ?? null;
+      console.log(filter_tenant);
+      const calculate_prompt_token = modelScale
+        ? (prompt_tokens - cached_tokens) * modelScale
+        : prompt_tokens;
+      console.log(calculate_prompt_token);
+      userTenantData.totalPromptTokenUsage += calculate_prompt_token;
       userTenantData.totalCompletionTokenUsage += totalCompletion;
       await clientRedis.set(
         `USER_DATA_${userTenantData.userId}`,
